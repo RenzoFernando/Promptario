@@ -26,7 +26,7 @@ Pendiente por activar en GitHub Pages.
 ## Estructura del proyecto
 
 ```txt
-/
+promptario/
 ├── index.html
 ├── assets/
 │   └── favicon.ico

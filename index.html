@@ -25,8 +25,10 @@
       <main class="main-layout">
         <section class="panel library-panel" aria-labelledby="library-title">
           <div class="library-header">
-            <div class="panel-heading">
-              <h1 id="library-title">Colección de prompts</h1>
+            <div class="library-title-row">
+              <div class="panel-heading">
+                <h1 id="library-title">Colección de prompts</h1>
+              </div>
             </div>
 
             <div class="library-controls" aria-label="Controles de búsqueda y ordenamiento">
@@ -43,21 +45,26 @@
                 </select>
               </label>
 
-              <button class="ghost-button direction-button" id="sort-direction" type="button" data-direction="desc">Descendente</button>
+              <div class="direction-field">
+                <span>Tipo</span>
+                <button class="ghost-button direction-button" id="sort-direction" type="button" data-direction="desc">Descendente</button>
+              </div>
             </div>
           </div>
 
-          <div class="empty-state" id="empty-state">
-            <span>Todavía no hay prompts.</span>
-            <p>Crea el primero desde Nuevo prompt.</p>
-          </div>
+          <div class="library-body">
+            <div class="empty-state" id="empty-state">
+              <span>Todavía no hay prompts.</span>
+              <p>Crea el primero desde Nuevo prompt.</p>
+            </div>
 
-          <div class="prompt-list" id="prompt-list" aria-live="polite"></div>
+            <div class="prompt-list" id="prompt-list" aria-live="polite"></div>
+          </div>
         </section>
       </main>
 
       <footer class="site-footer">
-        <p><strong>Promptario</strong> — Proyecto diseñado para gestionar mi colección de prompts.</p>
+        <p><strong>Promptario</strong> — Proyecto diseñado para gestionar prompts.</p>
         <p>© 2026 Renzo Fernando Mosquera Daza. Todos los derechos reservados.</p>
       </footer>
     </div>

@@ -37,19 +37,6 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
-function formatDate(value) {
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) {
-    return "Fecha no disponible";
-  }
-
-  return new Intl.DateTimeFormat("es-CO", {
-    dateStyle: "medium",
-    timeStyle: "short"
-  }).format(date);
-}
-
 function renderPrompts(prompts, options = {}) {
   const hasPrompts = options.totalPrompts > 0;
   const hasSearch = Boolean(options.searchTerm);
@@ -70,7 +57,6 @@ function renderPrompts(prompts, options = {}) {
       <button class="icon-button copy-button" type="button" data-action="copy" data-id="${escapeHtml(prompt.id)}" aria-label="Copiar prompt" title="Copiar prompt">${icons.copy}</button>
       <header class="prompt-card-header">
         <h3 class="prompt-card-title">${escapeHtml(prompt.title)}</h3>
-        <span class="prompt-card-date">${escapeHtml(formatDate(prompt.createdAt))}</span>
       </header>
       <p class="prompt-content">${escapeHtml(prompt.content)}</p>
       <div class="prompt-actions">
