@@ -1,10 +1,11 @@
 const firebaseConfig = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyBFjzY_c2mMSNraVkogHdvsfJcEqqPOB1I",
+  authDomain: "promptario-58cd3.firebaseapp.com",
+  projectId: "promptario-58cd3",
+  storageBucket: "promptario-58cd3.firebasestorage.app",
+  messagingSenderId: "573696993748",
+  appId: "1:573696993748:web:92a48618e14e5eab02ce41",
+  measurementId: "G-1CVWY0RSSC"
 };
 
 const hasFirebaseConfig = Object.values(firebaseConfig).every((value) => typeof value === "string" && value.trim().length > 0);
