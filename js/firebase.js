@@ -41,7 +41,15 @@ async function createFirestoreService() {
       await firestore.addDoc(promptsCollection, {
         title: data.title,
         content: data.content,
-        createdAt: firestore.serverTimestamp()
+        createdAt: firestore.serverTimestamp(),
+        updatedAt: firestore.serverTimestamp()
+      });
+    },
+    async updatePrompt(id, data) {
+      await firestore.updateDoc(firestore.doc(db, "prompts", id), {
+        title: data.title,
+        content: data.content,
+        updatedAt: firestore.serverTimestamp()
       });
     },
     async deletePrompt(id) {
@@ -56,7 +64,8 @@ async function createFirestoreService() {
             id: item.id,
             title: data.title || "Sin título",
             content: data.content || "",
-            createdAt: normalizeDate(data.createdAt)
+            createdAt: normalizeDate(data.createdAt),
+            updatedAt: normalizeDate(data.updatedAt || data.createdAt)
           };
         });
 
