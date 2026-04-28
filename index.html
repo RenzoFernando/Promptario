@@ -31,23 +31,44 @@
               </div>
             </div>
 
-            <div class="library-controls" aria-label="Controles de búsqueda y ordenamiento">
+            <div class="library-controls" aria-label="Controles de búsqueda, ordenamiento y vista">
               <label class="search-field" for="search-input">
                 <span>Buscar</span>
                 <input id="search-input" name="search" type="search" placeholder="Buscar por título o contenido">
               </label>
 
-              <label class="select-label" for="sort-field">
-                <span>Ordenar por</span>
-                <select id="sort-field" name="sort-field">
-                  <option value="createdAt">Fecha</option>
-                  <option value="title">Título</option>
-                </select>
-              </label>
+              <div class="select-label custom-select" data-select-menu="sort-field">
+                <span id="sort-field-label">Ordenar por</span>
+                <input id="sort-field" name="sort-field" type="hidden" value="createdAt">
+                <button class="select-button" id="sort-field-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="sort-field-label sort-field-current">
+                  <span id="sort-field-current">Fecha</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </button>
+                <div class="select-menu" role="listbox" aria-labelledby="sort-field-label">
+                  <button class="select-option is-selected" type="button" role="option" data-value="createdAt" aria-selected="true">Fecha</button>
+                  <button class="select-option" type="button" role="option" data-value="title" aria-selected="false">Título</button>
+                </div>
+              </div>
 
               <div class="direction-field">
                 <span>Tipo</span>
                 <button class="ghost-button direction-button" id="sort-direction" type="button" data-direction="desc">Descendente</button>
+              </div>
+
+              <div class="select-label custom-select view-field" data-select-menu="view-mode">
+                <span id="view-mode-label">Vista</span>
+                <input id="view-mode" name="view-mode" type="hidden" value="expanded">
+                <button class="select-button" id="view-mode-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="view-mode-label view-mode-current">
+                  <span id="view-mode-current">Lista extendida</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </button>
+                <div class="select-menu" role="listbox" aria-labelledby="view-mode-label">
+                  <button class="select-option is-selected" type="button" role="option" data-value="expanded" aria-selected="true">Lista extendida</button>
+                  <button class="select-option" type="button" role="option" data-value="compact" aria-selected="false">Lista resumida</button>
+                  <button class="select-option" type="button" role="option" data-value="titles" aria-selected="false">Índice de títulos</button>
+                  <button class="select-option" type="button" role="option" data-value="grid" aria-selected="false">Cuadrícula</button>
+                  <button class="select-option" type="button" role="option" data-value="mosaic" aria-selected="false">Mosaico</button>
+                </div>
               </div>
             </div>
           </div>
@@ -64,7 +85,7 @@
       </main>
 
       <footer class="site-footer">
-        <p><strong>Promptario</strong> — Proyecto diseñado para gestionar prompts.</p>
+        <p><a class="footer-brand-link" href="https://github.com/RenzoFernando/Promptario" target="_blank" rel="noopener noreferrer"><strong>Promptario</strong></a> — Proyecto diseñado para gestionar prompts.</p>
         <p>© 2026 Renzo Fernando Mosquera Daza. Todos los derechos reservados.</p>
       </footer>
     </div>
@@ -93,6 +114,25 @@
 
           <button class="primary-button" id="save-button" type="submit">Guardar prompt</button>
         </form>
+      </div>
+    </section>
+
+    <section class="viewer-screen" id="viewer-screen" aria-labelledby="viewer-title" aria-hidden="true">
+      <div class="viewer-dialog" role="dialog" aria-modal="true">
+        <div class="viewer-header">
+          <div class="panel-heading">
+            <h2 id="viewer-title">Prompt</h2>
+          </div>
+          <button class="ghost-button viewer-close" id="close-viewer-button" type="button">Cerrar</button>
+        </div>
+
+        <div class="viewer-content">
+          <p class="viewer-prompt-content" id="viewer-prompt-content"></p>
+        </div>
+
+        <div class="viewer-actions">
+          <button class="primary-button" id="copy-viewer-button" type="button">Copiar prompt</button>
+        </div>
       </div>
     </section>
 

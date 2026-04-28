@@ -1,15 +1,19 @@
 import { createFirestoreService, hasFirebaseConfig } from "./firebase.js";
-import { elements, fillForm, renderPrompts, resetForm, setDeletePromptName, setFormLoading, setFormMode, showToast, toggleComposer, toggleDeleteDialog, updateSortDirection } from "./ui.js";
+import { closeCustomSelects, elements, fillForm, fillViewer, renderPrompts, resetForm, setCustomSelectValue, setDeletePromptName, setFormLoading, setFormMode, showToast, toggleComposer, toggleCustomSelect, toggleDeleteDialog, toggleViewer, updateSortDirection, updateSortField, updateViewMode } from "./ui.js";
 
 const localStorageKey = "promptario:prompts";
+const preferencesStorageKey = "promptario:preferences";
+const validViewModes = ["expanded", "compact", "titles", "grid", "mosaic"];
 let prompts = [];
 let visiblePrompts = [];
 let firestoreService = null;
 let unsubscribe = null;
 let sortField = "createdAt";
 let sortDirection = "desc";
+let viewMode = "expanded";
 let searchTerm = "";
 let pendingDeleteId = null;
+let activeViewId = null;
 
 function createId() {
   if (window.crypto && typeof window.crypto.randomUUID === "function") {
@@ -32,6 +36,43 @@ function readLocalPrompts() {
 
 function writeLocalPrompts(nextPrompts) {
   window.localStorage.setItem(localStorageKey, JSON.stringify(nextPrompts));
+}
+
+function readPreferences() {
+  try {
+    const stored = window.localStorage.getItem(preferencesStorageKey);
+    const parsed = stored ? JSON.parse(stored) : {};
+    const nextSortField = parsed.sortField === "title" || parsed.sortField === "createdAt" ? parsed.sortField : "createdAt";
+    const nextSortDirection = parsed.sortDirection === "asc" || parsed.sortDirection === "desc" ? parsed.sortDirection : "desc";
+    const storedViewMode = parsed.viewMode === "gallery" ? "mosaic" : parsed.viewMode;
+    const nextViewMode = validViewModes.includes(storedViewMode) ? storedViewMode : "expanded";
+
+    return {
+      sortField: nextSortField,
+      sortDirection: nextSortDirection,
+      viewMode: nextViewMode
+    };
+  } catch {
+    return {
+      sortField: "createdAt",
+      sortDirection: "desc",
+      viewMode: "expanded"
+    };
+  }
+}
+
+function writePreferences() {
+  window.localStorage.setItem(preferencesStorageKey, JSON.stringify({
+    sortField,
+    sortDirection,
+    viewMode
+  }));
+}
+
+function applyPreferencesToControls() {
+  updateSortField(sortField);
+  updateSortDirection(sortDirection);
+  updateViewMode(viewMode);
 }
 
 function sortPrompts(items) {
@@ -68,7 +109,8 @@ function refreshPrompts(nextPrompts = prompts) {
   visiblePrompts = sortPrompts(filterPrompts(prompts));
   renderPrompts(visiblePrompts, {
     totalPrompts: prompts.length,
-    searchTerm
+    searchTerm,
+    viewMode
   });
 }
 
@@ -110,6 +152,25 @@ function openEditComposer(id) {
   setFormMode("edit");
   fillForm(prompt);
   toggleComposer(true);
+}
+
+function openPromptViewer(id) {
+  const prompt = getPromptById(id);
+
+  if (!prompt) {
+    showToast("No se encontró el prompt.", "error");
+    return;
+  }
+
+  activeViewId = id;
+  fillViewer(prompt);
+  toggleViewer(true);
+}
+
+function closePromptViewer() {
+  activeViewId = null;
+  fillViewer(null);
+  toggleViewer(false);
 }
 
 function openDeleteDialog(id) {
@@ -244,6 +305,10 @@ function handleListClick(event) {
     copyPrompt(id);
   }
 
+  if (action === "view") {
+    openPromptViewer(id);
+  }
+
   if (action === "edit") {
     openEditComposer(id);
   }
@@ -260,13 +325,59 @@ function handleSearchInput(event) {
 
 function handleSortFieldChange(event) {
   sortField = event.target.value;
+  updateSortField(sortField);
+  writePreferences();
   refreshPrompts(prompts);
 }
 
 function handleSortDirectionClick() {
   sortDirection = sortDirection === "asc" ? "desc" : "asc";
   updateSortDirection(sortDirection);
+  writePreferences();
   refreshPrompts(prompts);
+}
+
+function handleViewModeChange(event) {
+  viewMode = event.target.value;
+  updateViewMode(viewMode);
+  writePreferences();
+  refreshPrompts(prompts);
+}
+
+function handleCustomSelectClick(event) {
+  const menu = event.target.closest("[data-select-menu]");
+
+  if (!menu) {
+    return;
+  }
+
+  const button = event.target.closest(".select-button");
+  const option = event.target.closest(".select-option");
+
+  if (button) {
+    toggleCustomSelect(menu);
+    return;
+  }
+
+  if (!option) {
+    return;
+  }
+
+  const input = menu.querySelector("input");
+
+  if (!input) {
+    return;
+  }
+
+  setCustomSelectValue(menu.dataset.selectMenu, option.dataset.value);
+  closeCustomSelects();
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+}
+
+function handleDocumentClick(event) {
+  if (!event.target.closest("[data-select-menu]")) {
+    closeCustomSelects();
+  }
 }
 
 function loadLocalMode() {
@@ -301,6 +412,11 @@ function bindEvents() {
   elements.searchInput.addEventListener("input", handleSearchInput);
   elements.sortField.addEventListener("change", handleSortFieldChange);
   elements.sortDirection.addEventListener("click", handleSortDirectionClick);
+  elements.viewMode.addEventListener("change", handleViewModeChange);
+  elements.selectMenus.forEach((menu) => {
+    menu.addEventListener("click", handleCustomSelectClick);
+  });
+  document.addEventListener("click", handleDocumentClick);
   elements.openComposerButton.addEventListener("click", openCreateComposer);
   elements.closeComposerButton.addEventListener("click", () => {
     resetForm();
@@ -312,6 +428,15 @@ function bindEvents() {
       toggleComposer(false);
     }
   });
+  elements.closeViewerButton.addEventListener("click", closePromptViewer);
+  elements.copyViewerButton.addEventListener("click", () => {
+    copyPrompt(activeViewId);
+  });
+  elements.viewerScreen.addEventListener("click", (event) => {
+    if (event.target === elements.viewerScreen) {
+      closePromptViewer();
+    }
+  });
   elements.cancelDeleteButton.addEventListener("click", closeDeleteDialog);
   elements.confirmDeleteButton.addEventListener("click", confirmDeletePrompt);
   elements.deleteScreen.addEventListener("click", (event) => {
@@ -320,6 +445,15 @@ function bindEvents() {
     }
   });
   window.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      closeCustomSelects();
+    }
+
+    if (event.key === "Escape" && elements.viewerScreen.classList.contains("is-open")) {
+      closePromptViewer();
+      return;
+    }
+
     if (event.key === "Escape" && elements.deleteScreen.classList.contains("is-open")) {
       closeDeleteDialog();
       return;
@@ -338,8 +472,12 @@ function bindEvents() {
 }
 
 function init() {
+  const preferences = readPreferences();
+  sortField = preferences.sortField;
+  sortDirection = preferences.sortDirection;
+  viewMode = preferences.viewMode;
   bindEvents();
-  updateSortDirection(sortDirection);
+  applyPreferencesToControls();
 
   if (hasFirebaseConfig) {
     loadFirestoreMode();
