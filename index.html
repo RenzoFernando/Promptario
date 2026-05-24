@@ -31,28 +31,51 @@
               </div>
             </div>
 
-            <div class="library-controls" aria-label="Controles de búsqueda, ordenamiento y vista">
+            <div class="library-controls" aria-label="Controles de búsqueda, categoría, favoritos, ordenamiento y vista">
               <label class="search-field" for="search-input">
                 <span>Buscar</span>
-                <input id="search-input" name="search" type="search" placeholder="Buscar por título o contenido">
+                <input id="search-input" name="search" type="search" placeholder="Buscar por título, contenido o categoría">
               </label>
+
+              <div class="select-label custom-select category-filter-field" data-select-menu="category-filter">
+                <span id="category-filter-label">Categoría</span>
+                <input id="category-filter" name="category-filter" type="hidden" value="all">
+                <button class="select-button" id="category-filter-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="category-filter-label category-filter-current">
+                  <span id="category-filter-current">Todas</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                </button>
+                <div class="select-menu" role="listbox" aria-labelledby="category-filter-label">
+                  <button class="select-option is-selected" type="button" role="option" data-value="all" aria-selected="true">Todas</button>
+                  <button class="select-option" type="button" role="option" data-value="__none__" aria-selected="false">Sin categoría</button>
+                </div>
+              </div>
+
+              <div class="favorite-filter-field">
+                <span>Favoritos</span>
+                <button class="ghost-button favorite-filter-button" id="favorite-filter" type="button" data-filter="all" aria-pressed="false">
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3.8 2.42 4.9 5.4.78-3.91 3.82.92 5.37L12 16.13l-4.83 2.54.92-5.37-3.91-3.82 5.4-.78L12 3.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path></svg>
+                  <span>Todos</span>
+                </button>
+              </div>
 
               <div class="select-label custom-select" data-select-menu="sort-field">
                 <span id="sort-field-label">Ordenar por</span>
-                <input id="sort-field" name="sort-field" type="hidden" value="createdAt">
+                <input id="sort-field" name="sort-field" type="hidden" value="title">
                 <button class="select-button" id="sort-field-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="sort-field-label sort-field-current">
-                  <span id="sort-field-current">Fecha</span>
+                  <span id="sort-field-current">Título</span>
                   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
                 </button>
                 <div class="select-menu" role="listbox" aria-labelledby="sort-field-label">
-                  <button class="select-option is-selected" type="button" role="option" data-value="createdAt" aria-selected="true">Fecha</button>
-                  <button class="select-option" type="button" role="option" data-value="title" aria-selected="false">Título</button>
+                  <button class="select-option is-selected" type="button" role="option" data-value="title" aria-selected="true">Título</button>
+                  <button class="select-option" type="button" role="option" data-value="createdAt" aria-selected="false">Fecha</button>
+                  <button class="select-option" type="button" role="option" data-value="category" aria-selected="false">Categoría</button>
+                  <button class="select-option" type="button" role="option" data-value="isFavorite" aria-selected="false">Favoritos</button>
                 </div>
               </div>
 
               <div class="direction-field">
                 <span>Tipo</span>
-                <button class="ghost-button direction-button" id="sort-direction" type="button" data-direction="desc">Descendente</button>
+                <button class="ghost-button direction-button" id="sort-direction" type="button" data-direction="asc">Ascendente</button>
               </div>
 
               <div class="select-label custom-select view-field" data-select-menu="view-mode">
@@ -101,6 +124,7 @@
 
         <form id="prompt-form" class="prompt-form" autocomplete="off" novalidate>
           <input id="prompt-id" name="id" type="hidden">
+          <input id="prompt-favorite-value" name="isFavorite" type="hidden" value="false">
 
           <label class="field-group" for="prompt-title">
             <span>Título</span>
@@ -112,8 +136,63 @@
             <textarea id="prompt-content" name="content" rows="10" placeholder="Escribe aquí el prompt completo" required></textarea>
           </label>
 
+          <section class="prompt-options" aria-label="Opciones del prompt">
+            <button class="favorite-form-toggle" id="prompt-favorite" type="button" data-favorite="false" aria-pressed="false">
+              <span class="favorite-form-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none"><path d="m12 3.8 2.42 4.9 5.4.78-3.91 3.82.92 5.37L12 16.13l-4.83 2.54.92-5.37-3.91-3.82 5.4-.78L12 3.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path></svg>
+              </span>
+              <span class="favorite-form-copy">
+                <strong>Favorito</strong>
+                <small id="prompt-favorite-label">No marcado</small>
+              </span>
+            </button>
+
+            <div class="category-assignment-card">
+              <div class="category-assignment-content">
+                <span id="category-assignment-title">Categorías</span>
+                <p id="selected-categories-summary">Sin categoría asignada</p>
+                <div class="selected-category-preview" id="selected-category-preview" aria-live="polite"></div>
+              </div>
+              <button class="ghost-button category-manager-open" id="open-category-manager-button" type="button">Gestionar</button>
+            </div>
+          </section>
+
           <button class="primary-button" id="save-button" type="submit">Guardar prompt</button>
         </form>
+      </div>
+    </section>
+
+    <section class="category-screen" id="category-screen" aria-labelledby="category-dialog-title" aria-hidden="true">
+      <div class="category-dialog" role="dialog" aria-modal="true">
+        <div class="category-dialog-header">
+          <div class="panel-heading">
+            <h2 id="category-dialog-title">Categorías</h2>
+            <p>Crea categorías en minúscula y selecciona las que quieres asignar al prompt.</p>
+          </div>
+          <button class="ghost-button category-close" id="close-category-manager-button" type="button">Cerrar</button>
+        </div>
+
+        <div class="category-dialog-layout">
+          <section class="category-create-panel" aria-labelledby="category-create-title">
+            <div>
+              <span id="category-create-title">Nueva categoría</span>
+              <p>Se guardará para usarla en otros prompts, sin asignarse automáticamente.</p>
+            </div>
+            <div class="category-create-row">
+              <label class="sr-only" for="category-name-input">Nueva categoría</label>
+              <input id="category-name-input" name="category-name" type="text" maxlength="60" placeholder="nombre de categoría">
+              <button class="primary-button" id="create-category-button" type="button">Crear</button>
+            </div>
+          </section>
+
+          <section class="category-picker-panel" aria-labelledby="category-picker-title">
+            <div class="category-picker-heading">
+              <span id="category-picker-title">Asignar al prompt</span>
+              <p>Elige categorías existentes o elimínalas cuando ya no las necesites.</p>
+            </div>
+            <div class="category-picker" id="category-picker" aria-label="Categorías disponibles"></div>
+          </section>
+        </div>
       </div>
     </section>
 
@@ -127,6 +206,10 @@
         </div>
 
         <div class="viewer-content">
+          <div class="viewer-meta">
+            <span class="viewer-favorite" id="viewer-prompt-favorite"></span>
+            <div class="viewer-categories" id="viewer-prompt-categories"></div>
+          </div>
           <p class="viewer-prompt-content" id="viewer-prompt-content"></p>
         </div>
 

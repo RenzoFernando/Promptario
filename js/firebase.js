@@ -9,6 +9,7 @@ const firebaseConfig = {
 };
 
 const hasFirebaseConfig = Object.values(firebaseConfig).every((value) => typeof value === "string" && value.trim().length > 0);
+const categoriesDocumentId = "__promptario_categories__";
 
 function normalizeDate(value) {
   if (!value) {
@@ -26,6 +27,27 @@ function normalizeDate(value) {
   return String(value);
 }
 
+function normalizeCategoryName(value) {
+  return String(value || "").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
+}
+
+function normalizeCategories(value) {
+  const source = Array.isArray(value) ? value : typeof value === "string" ? value.split(",") : [];
+  const normalized = [];
+
+  source.forEach((category) => {
+    const nextCategory = normalizeCategoryName(category);
+
+    if (!nextCategory || normalized.includes(nextCategory)) {
+      return;
+    }
+
+    normalized.push(nextCategory);
+  });
+
+  return normalized;
+}
+
 async function createFirestoreService() {
   if (!hasFirebaseConfig) {
     return null;
@@ -36,12 +58,15 @@ async function createFirestoreService() {
   const app = firebaseApp.initializeApp(firebaseConfig);
   const db = firestore.getFirestore(app);
   const promptsCollection = firestore.collection(db, "prompts");
+  const categoriesDocument = firestore.doc(db, "prompts", categoriesDocumentId);
 
   return {
     async createPrompt(data) {
       await firestore.addDoc(promptsCollection, {
         title: data.title,
         content: data.content,
+        categories: normalizeCategories(data.categories),
+        isFavorite: Boolean(data.isFavorite),
         createdAt: firestore.serverTimestamp(),
         updatedAt: firestore.serverTimestamp()
       });
@@ -50,27 +75,93 @@ async function createFirestoreService() {
       await firestore.updateDoc(firestore.doc(db, "prompts", id), {
         title: data.title,
         content: data.content,
+        categories: normalizeCategories(data.categories),
+        isFavorite: Boolean(data.isFavorite),
         updatedAt: firestore.serverTimestamp()
       });
     },
     async deletePrompt(id) {
       await firestore.deleteDoc(firestore.doc(db, "prompts", id));
     },
+    async createCategory(data) {
+      const name = normalizeCategoryName(data.name);
+
+      if (!name) {
+        return;
+      }
+
+      await firestore.setDoc(categoriesDocument, {
+        internalType: "promptarioCategories",
+        categories: firestore.arrayUnion(name),
+        updatedAt: firestore.serverTimestamp()
+      }, { merge: true });
+    },
+    async deleteCategory(name) {
+      const category = normalizeCategoryName(name);
+
+      if (!category) {
+        return;
+      }
+
+      const batch = firestore.writeBatch(db);
+      const categoryQuery = firestore.query(promptsCollection, firestore.where("categories", "array-contains", category));
+      const categoryPrompts = await firestore.getDocs(categoryQuery);
+
+      batch.set(categoriesDocument, {
+        internalType: "promptarioCategories",
+        categories: firestore.arrayRemove(category),
+        updatedAt: firestore.serverTimestamp()
+      }, { merge: true });
+
+      categoryPrompts.forEach((item) => {
+        const data = item.data();
+
+        if (item.id === categoriesDocumentId || data.internalType === "promptarioCategories") {
+          return;
+        }
+
+        batch.update(item.ref, {
+          categories: normalizeCategories(data.categories).filter((itemCategory) => itemCategory !== category),
+          updatedAt: firestore.serverTimestamp()
+        });
+      });
+
+      await batch.commit();
+    },
     subscribePrompts(onChange, onError) {
       return firestore.onSnapshot(promptsCollection, (snapshot) => {
-        const prompts = snapshot.docs.map((item) => {
+        const prompts = snapshot.docs.reduce((items, item) => {
           const data = item.data();
 
-          return {
+          if (item.id === categoriesDocumentId || data.internalType === "promptarioCategories") {
+            return items;
+          }
+
+          items.push({
             id: item.id,
             title: data.title || "Sin título",
             content: data.content || "",
+            categories: normalizeCategories(data.categories),
+            isFavorite: Boolean(data.isFavorite),
             createdAt: normalizeDate(data.createdAt),
             updatedAt: normalizeDate(data.updatedAt || data.createdAt)
-          };
-        });
+          });
+
+          return items;
+        }, []);
 
         onChange(prompts);
+      }, onError);
+    },
+    subscribeCategories(onChange, onError) {
+      return firestore.onSnapshot(categoriesDocument, (snapshot) => {
+        if (!snapshot.exists()) {
+          onChange([]);
+          return;
+        }
+
+        const data = snapshot.data();
+        onChange(normalizeCategories(data.categories));
       }, onError);
     }
   };
