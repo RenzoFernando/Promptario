@@ -66,7 +66,8 @@ button {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto;
   row-gap: 10px;
-  width: min(100% - 32px, var(--max-width));
+  width: calc(100% - 32px);
+  max-width: var(--max-width);
   height: 100dvh;
   margin: 0 auto;
   padding: 18px 0 7px;
@@ -86,6 +87,7 @@ button {
 .brand {
   display: inline-flex;
   align-items: center;
+  min-width: 0;
   gap: 11px;
   color: var(--text);
   text-decoration: none;
@@ -105,11 +107,25 @@ button {
   height: 38px;
 }
 
+.brand-copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
 .brand-name {
-  font-size: clamp(1.55rem, 4vw, 2.45rem);
+  font-size: clamp(1.48rem, 3.2vw, 2.15rem);
   font-weight: 760;
-  line-height: 1;
-  letter-spacing: -0.065em;
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+}
+
+.brand-subtitle {
+  color: var(--muted-strong);
+  font-size: clamp(0.7rem, 1.25vw, 0.8rem);
+  font-weight: 680;
+  line-height: 1.15;
+  letter-spacing: 0.005em;
 }
 
 .main-layout {
@@ -119,11 +135,12 @@ button {
 }
 
 .panel {
+  isolation: isolate;
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: var(--shadow-soft);
-  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.94);
+  background-clip: padding-box;
+  box-shadow: 0 20px 46px -32px rgba(36, 34, 30, 0.34), 0 7px 18px -14px rgba(36, 34, 30, 0.2);
 }
 
 .library-panel {
@@ -138,7 +155,7 @@ button {
 
 .library-header {
   display: grid;
-  gap: 16px;
+  min-width: 0;
   flex: 0 0 auto;
 }
 
@@ -172,8 +189,14 @@ p {
 
 .library-controls {
   display: grid;
+  min-width: 0;
+  max-width: 100%;
   grid-template-columns: minmax(0, 1fr);
   gap: 10px;
+}
+
+.library-controls > * {
+  min-width: 0;
 }
 
 .field-group,
@@ -240,7 +263,15 @@ select {
   transition: border-color 180ms ease, background 180ms ease, box-shadow 180ms ease;
 }
 
+.select-button > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .select-button svg {
+  display: block;
   width: 17px;
   height: 17px;
   flex: 0 0 auto;
@@ -644,9 +675,13 @@ textarea {
 }
 
 .category-delete-button svg {
+  display: block;
   width: 14px;
   height: 14px;
+  overflow: visible;
   stroke: currentColor;
+  transform-box: view-box;
+  transform-origin: center;
 }
 
 .category-delete-button:hover,
@@ -681,6 +716,7 @@ select:focus {
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   font-weight: 700;
+  line-height: 1;
   transition: background 180ms ease, border-color 180ms ease, color 180ms ease, opacity 180ms ease, box-shadow 180ms ease;
 }
 
@@ -752,7 +788,6 @@ select:focus {
 
 .favorite-filter-button {
   width: 104px;
-  gap: 5px;
   justify-content: center;
   padding: 0 9px;
   border-radius: var(--radius-md);
@@ -1021,17 +1056,41 @@ select:focus {
   width: 34px;
   height: 34px;
   min-height: 34px;
+  flex: 0 0 34px;
   padding: 0;
   border-color: var(--border);
   background: rgba(255, 255, 255, 0.78);
   color: var(--muted-strong);
   box-shadow: 0 7px 16px rgba(36, 34, 30, 0.055);
+  line-height: 0;
 }
 
 .icon-button svg {
+  display: block;
   width: 16px;
   height: 16px;
+  overflow: visible;
   stroke: currentColor;
+  transform-box: view-box;
+  transform-origin: center;
+}
+
+.icon-button[data-action="copy"] svg {
+  transform: translate(0.35px, 0.1px);
+}
+
+.icon-button[data-action="edit"] svg {
+  transform: translate(-0.15px, 0.1px);
+}
+
+.icon-button[data-action="delete"] svg,
+.category-delete-button svg {
+  transform: translateY(-0.45px);
+}
+
+.favorite-button svg,
+.favorite-form-icon svg {
+  transform: translateY(0.45px);
 }
 
 .icon-button:hover {
@@ -1331,7 +1390,7 @@ select:focus {
   color: var(--success);
 }
 
-@media (min-width: 720px) and (max-width: 1119px) {
+@media (min-width: 720px) and (max-width: 1199px) {
   body {
     overflow: auto;
   }
@@ -1341,7 +1400,8 @@ select:focus {
   }
 
   .app-shell {
-    width: min(100% - 26px, var(--max-width));
+    width: calc(100% - 26px);
+    max-width: var(--max-width);
     min-height: 100dvh;
     height: auto;
   }
@@ -1384,7 +1444,7 @@ select:focus {
   }
 }
 
-@media (min-width: 1120px) {
+@media (min-width: 1200px) {
   .library-controls {
     grid-template-columns: minmax(340px, 1.2fr) 160px 104px 146px 142px 150px;
     align-items: end;
@@ -1401,7 +1461,8 @@ select:focus {
   }
 
   .app-shell {
-    width: min(100% - 22px, var(--max-width));
+    width: calc(100% - 22px);
+    max-width: var(--max-width);
     min-height: 100dvh;
     height: auto;
     padding-top: 12px;

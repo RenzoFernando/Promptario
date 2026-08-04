@@ -12,11 +12,14 @@
     <div class="app-shell">
       <header class="site-header">
         <nav class="topbar" aria-label="Principal">
-          <a class="brand" href="./" aria-label="Promptario">
+          <a class="brand" href="./" aria-label="Promptario — Colección de prompts">
             <span class="brand-mark" aria-hidden="true">
               <img src="assets/favicon.ico" alt="">
             </span>
-            <span class="brand-name">Promptario</span>
+            <span class="brand-copy">
+              <span class="brand-name">Promptario</span>
+              <span class="brand-subtitle" id="library-title">Colección de prompts</span>
+            </span>
           </a>
           <button class="primary-button topbar-action" id="open-composer-button" type="button">Nuevo prompt</button>
         </nav>
@@ -25,12 +28,6 @@
       <main class="main-layout">
         <section class="panel library-panel" aria-labelledby="library-title">
           <div class="library-header">
-            <div class="library-title-row">
-              <div class="panel-heading">
-                <h1 id="library-title">Colección de prompts</h1>
-              </div>
-            </div>
-
             <div class="library-controls" aria-label="Controles de búsqueda, categoría, favoritos, ordenamiento y vista">
               <label class="search-field" for="search-input">
                 <span>Buscar</span>
@@ -53,7 +50,6 @@
               <div class="favorite-filter-field">
                 <span>Favoritos</span>
                 <button class="ghost-button favorite-filter-button" id="favorite-filter" type="button" data-filter="all" aria-pressed="false">
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m12 3.8 2.42 4.9 5.4.78-3.91 3.82.92 5.37L12 16.13l-4.83 2.54.92-5.37-3.91-3.82 5.4-.78L12 3.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path></svg>
                   <span>Todos</span>
                 </button>
               </div>
