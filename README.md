@@ -1,19 +1,35 @@
+<div align="center">
+
 # Promptario
 
-Aplicación web estática para guardar, consultar, copiar, editar, eliminar, buscar y ordenar prompts reutilizables.
+<br>
 
-## Ver aplicación online
+<img src="assets/favicon.png" alt="Icono de Promptario" width="120" align="center">
 
-Pendiente por activar en GitHub Pages.
+<p>
+  <a href="https://renzofernando.github.io/Promptario/">
+    <img src="https://img.shields.io/badge/VER%20APLICACI%C3%93N%20WEB-24221e?style=for-the-badge" alt="Ver aplicación web">
+  </a>
+</p>
+
+<strong>Gestión y organización de prompts.</strong>
+
+</div>
+
+<br>
+
+<p>
+  Promptario es una aplicación web pensada para centralizar y reutilizar prompts de forma ordenada. Permite crear, consultar, editar y eliminar contenido, organizarlo mediante categorías y favoritos, buscar rápidamente dentro de la colección y alternar entre distintas formas de visualización según la necesidad del usuario.
+</p>
 
 ## Características
 
-- Crear prompts con título y contenido.
-- Buscar por título o contenido.
-- Ordenar por fecha o título.
+- Crear, consultar, editar y eliminar prompts.
+- Buscar por título, contenido o categoría.
+- Organizar prompts con categorías y favoritos.
+- Ordenar por título, fecha, categoría o favoritos.
+- Cambiar entre distintas vistas de la colección.
 - Copiar prompts al portapapeles.
-- Editar y eliminar entradas.
-- Funciona con almacenamiento local mientras se configura Firebase.
 
 ## Tecnologías
 
@@ -21,25 +37,11 @@ Pendiente por activar en GitHub Pages.
 - CSS3
 - JavaScript ES Modules
 - Firebase Firestore
-- GitHub Pages
 
-## Estructura del proyecto
+## Autor y licencia
 
-```txt
-promptario/
-├── index.html
-├── assets/
-│   └── favicon.ico
-├── css/
-│   └── styles.css
-├── js/
-│   ├── app.js
-│   ├── firebase.js
-│   └── ui.js
-├── .gitignore
-└── README.md
-```
+[Renzo Fernando Mosquera Daza](https://github.com/RenzoFernando)
 
-## Autor
+© 2026 — Renzo Fernando Mosquera Daza
 
-Renzo Fernando Mosquera Daza
+Licencia MIT.
