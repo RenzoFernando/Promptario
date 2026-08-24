@@ -118,15 +118,33 @@
           <input id="prompt-id" name="id" type="hidden">
           <input id="prompt-favorite-value" name="isFavorite" type="hidden" value="false">
 
-          <label class="field-group" for="prompt-title">
-            <span>Título</span>
-            <input id="prompt-title" name="title" type="text" maxlength="120" placeholder="Pon el título aquí de tu prompt" required>
-          </label>
+          <div class="field-group">
+            <div class="field-label-row">
+              <label for="prompt-title">Título</label>
+              <span class="field-counter" id="prompt-title-count">0 / 120 caracteres</span>
+            </div>
+            <input id="prompt-title" name="title" type="text" maxlength="120" aria-describedby="prompt-title-count" placeholder="Pon el título aquí de tu prompt" required>
+          </div>
 
-          <label class="field-group" for="prompt-content">
-            <span>Contenido</span>
-            <textarea id="prompt-content" name="content" rows="10" placeholder="Escribe aquí el prompt completo" required></textarea>
-          </label>
+          <div class="field-group prompt-content-field">
+            <div class="field-label-row">
+              <label for="prompt-content">Contenido</label>
+              <div class="field-label-meta">
+                <span class="field-counter" id="prompt-content-count">0 / 50.000 caracteres</span>
+                <span class="markdown-support-badge">Markdown</span>
+              </div>
+            </div>
+            <div class="markdown-composer">
+              <div class="markdown-pane">
+                <span class="markdown-pane-label">Escritura</span>
+                <textarea id="prompt-content" name="content" rows="10" maxlength="50000" aria-describedby="prompt-content-count" placeholder="Escribe aquí el prompt completo" required></textarea>
+              </div>
+              <div class="markdown-pane">
+                <span class="markdown-pane-label">Vista previa</span>
+                <div class="markdown-preview markdown-body" id="prompt-markdown-preview" aria-label="Vista previa del contenido en Markdown"></div>
+              </div>
+            </div>
+          </div>
 
           <section class="prompt-options" aria-label="Opciones del prompt">
             <button class="favorite-form-toggle" id="prompt-favorite" type="button" data-favorite="false" aria-pressed="false">
@@ -202,7 +220,7 @@
             <span class="viewer-favorite" id="viewer-prompt-favorite"></span>
             <div class="viewer-categories" id="viewer-prompt-categories"></div>
           </div>
-          <p class="viewer-prompt-content" id="viewer-prompt-content"></p>
+          <div class="viewer-prompt-content markdown-body" id="viewer-prompt-content"></div>
         </div>
 
         <div class="viewer-actions">
@@ -239,4 +257,3 @@
     <script type="module" src="js/app.js"></script>
   </body>
 </html>
-
