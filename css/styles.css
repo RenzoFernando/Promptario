@@ -1357,6 +1357,13 @@ select:focus {
   opacity: 0.86;
 }
 
+.footer-brand-link:focus-visible {
+  color: var(--text);
+  outline: 2px solid rgba(36, 34, 30, 0.2);
+  outline-offset: 3px;
+  opacity: 1;
+}
+
 .toast {
   position: fixed;
   right: 16px;
@@ -1918,67 +1925,6 @@ select:focus {
   }
 }
 
-html {
-  overflow: hidden;
-}
-
-body {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  height: 100dvh;
-  min-height: 0;
-  overflow: hidden;
-}
-
-body.has-modal-open {
-  overflow: hidden;
-}
-
-.app-shell {
-  height: 100%;
-  min-height: 0;
-}
-
-.main-layout,
-.library-panel {
-  overflow: hidden;
-}
-
-.library-panel {
-  min-height: 0;
-  height: 100%;
-}
-
-.library-body {
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.library-body::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-
-.site-footer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: calc(100% - 32px);
-  max-width: var(--max-width);
-  gap: 10px;
-  margin: 0 auto;
-  padding: 3px 8px 7px;
-  color: #69645d;
-  font-size: 0.72rem;
-  text-align: center;
-}
-
-.site-footer p + p::before {
-  content: "·";
-  margin-right: 10px;
-  color: var(--border-strong);
-}
-
 .prompt-card-header {
   padding: 0 42px 11px 0;
   border-bottom: 1px solid rgba(216, 208, 195, 0.72);
@@ -2217,12 +2163,6 @@ body.has-modal-open {
     gap: 8px;
   }
 
-  .site-footer {
-    flex-wrap: wrap;
-    gap: 2px 8px;
-    padding-bottom: 5px;
-    font-size: 0.68rem;
-  }
 }
 
 .prompt-content.is-truncated {
