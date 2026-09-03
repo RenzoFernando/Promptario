@@ -105,6 +105,25 @@
 
     </div>
 
+    <section class="pin-screen" id="pin-screen" aria-labelledby="pin-dialog-title" aria-hidden="true">
+      <div class="pin-dialog" role="dialog" aria-modal="true">
+        <div class="panel-heading pin-heading">
+          <h2 id="pin-dialog-title">Acceso de edición</h2>
+          <p>Ingresa tu PIN de 4 dígitos para realizar cambios.</p>
+        </div>
+
+        <form id="pin-form" class="pin-form" autocomplete="off" novalidate>
+          <label class="sr-only" for="pin-input">PIN de 4 dígitos</label>
+          <input id="pin-input" class="pin-input" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" aria-describedby="pin-error" required>
+          <p class="pin-error" id="pin-error" role="alert" aria-live="polite"></p>
+          <div class="pin-actions">
+            <button class="ghost-button" id="cancel-pin-button" type="button">Cancelar</button>
+            <button class="primary-button" id="submit-pin-button" type="submit">Continuar</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
     <section class="composer-screen" id="composer-screen" aria-labelledby="form-title" aria-hidden="true">
       <div class="composer-dialog" role="dialog" aria-modal="true">
         <div class="composer-header">

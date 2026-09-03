@@ -68,6 +68,18 @@ const elements = {
 
   composerScreen: document.querySelector("#composer-screen"),
 
+  pinScreen: document.querySelector("#pin-screen"),
+
+  pinForm: document.querySelector("#pin-form"),
+
+  pinInput: document.querySelector("#pin-input"),
+
+  pinError: document.querySelector("#pin-error"),
+
+  pinSubmitButton: document.querySelector("#submit-pin-button"),
+
+  cancelPinButton: document.querySelector("#cancel-pin-button"),
+
   viewerScreen: document.querySelector("#viewer-screen"),
 
   closeViewerButton: document.querySelector("#close-viewer-button"),
@@ -904,12 +916,65 @@ function updateViewMode(mode) {
 
 function updateBodyModalState() {
 
-  const hasOpenModal = elements.composerScreen.classList.contains("is-open") || elements.categoryScreen.classList.contains("is-open") || elements.viewerScreen.classList.contains("is-open") || elements.deleteScreen.classList.contains("is-open");
+  const hasOpenModal = elements.pinScreen.classList.contains("is-open") || elements.composerScreen.classList.contains("is-open") || elements.categoryScreen.classList.contains("is-open") || elements.viewerScreen.classList.contains("is-open") || elements.deleteScreen.classList.contains("is-open");
 
   document.body.classList.toggle("has-modal-open", hasOpenModal);
 
 }
 
+
+
+function setPinLoading(isLoading) {
+
+  elements.pinInput.disabled = isLoading;
+
+  elements.pinSubmitButton.disabled = isLoading;
+
+  elements.cancelPinButton.disabled = isLoading;
+
+  elements.pinSubmitButton.textContent = isLoading ? "Verificando" : "Continuar";
+
+}
+
+
+
+function setPinError(message = "") {
+
+  elements.pinError.textContent = message;
+
+}
+
+
+
+function resetPinDialog() {
+
+  elements.pinForm.reset();
+
+  setPinError("");
+
+  setPinLoading(false);
+
+}
+
+
+
+function togglePinDialog(isOpen) {
+
+  elements.pinScreen.classList.toggle("is-open", isOpen);
+
+  elements.pinScreen.setAttribute("aria-hidden", String(!isOpen));
+
+  updateBodyModalState();
+
+
+
+  if (isOpen) {
+
+    elements.pinInput.focus();
+
+  }
+
+}
 
 
 function toggleComposer(isOpen) {
@@ -1054,4 +1119,4 @@ function resetForm() {
 
 
 
-export { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode };
+export { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode };

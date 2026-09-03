@@ -1,6 +1,6 @@
 import { createFirestoreService, hasFirebaseConfig } from "./firebase.js";
 
-import { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode } from "./ui.js";
+import { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode } from "./ui.js";
 
 
 
@@ -45,6 +45,8 @@ let favoriteFilter = favoriteAllValue;
 let pendingDeleteId = null;
 
 let activeViewId = null;
+
+let pendingProtectedAction = null;
 
 
 
@@ -604,6 +606,145 @@ async function copyPrompt(id, triggerButton = null) {
 
 
 
+async function releaseAdminAccess() {
+
+  if (!firestoreService || typeof firestoreService.signOutAdmin !== "function") {
+
+    return;
+
+  }
+
+
+
+  try {
+
+    await firestoreService.signOutAdmin();
+
+  } catch {
+
+    // La sesión usa persistencia en memoria y se descarta al recargar la página.
+
+  }
+
+}
+
+
+
+function cancelPinDialog() {
+
+  pendingProtectedAction = null;
+
+  resetPinDialog();
+
+  togglePinDialog(false);
+
+}
+
+
+
+function requestAdminAccess(action) {
+
+  if (!firestoreService || typeof firestoreService.authenticatePin !== "function") {
+
+    showToast("La edición requiere conexión con Firebase.", "error");
+
+    return;
+
+  }
+
+
+
+  pendingProtectedAction = action;
+
+  resetPinDialog();
+
+  togglePinDialog(true);
+
+}
+
+
+
+async function handlePinSubmit(event) {
+
+  event.preventDefault();
+
+
+
+  const pin = elements.pinInput.value.trim();
+
+
+
+  if (!/^\d{4}$/.test(pin)) {
+
+    setPinError("El PIN debe tener exactamente 4 dígitos numéricos.");
+
+    return;
+
+  }
+
+
+
+  setPinLoading(true);
+
+  setPinError("");
+
+
+
+  try {
+
+    await firestoreService.authenticatePin(pin);
+
+  } catch {
+
+    setPinLoading(false);
+
+    setPinError("PIN incorrecto o acceso de edición no configurado.");
+
+    elements.pinInput.focus();
+
+    elements.pinInput.select();
+
+    return;
+
+  }
+
+
+
+  const action = pendingProtectedAction;
+
+  pendingProtectedAction = null;
+
+  resetPinDialog();
+
+  togglePinDialog(false);
+
+
+
+  if (typeof action === "function") {
+
+    await action();
+
+  }
+
+}
+
+
+
+function closeComposer() {
+
+  resetForm();
+
+  renderCategoryPicker(categories, []);
+
+  toggleCategoryManager(false);
+
+  toggleComposer(false);
+
+  releaseAdminAccess();
+
+}
+
+
 function openCreateComposer() {
 
   resetForm();
@@ -730,13 +871,21 @@ function openDeleteDialog(id) {
 
 
 
-function closeDeleteDialog() {
+function closeDeleteDialog(shouldReleaseAdmin = true) {
 
   pendingDeleteId = null;
 
   setDeletePromptName("");
 
   toggleDeleteDialog(false);
+
+
+
+  if (shouldReleaseAdmin) {
+
+    releaseAdminAccess();
+
+  }
 
 }
 
@@ -788,9 +937,19 @@ async function confirmDeletePrompt() {
 
   const id = pendingDeleteId;
 
-  closeDeleteDialog();
+  closeDeleteDialog(false);
 
-  await deletePrompt(id);
+
+
+  try {
+
+    await deletePrompt(id);
+
+  } finally {
+
+    await releaseAdminAccess();
+
+  }
 
 }
 
@@ -1136,11 +1295,7 @@ async function handleSubmit(event) {
 
 
 
-    resetForm();
-
-    renderCategoryPicker(categories, []);
-
-    toggleComposer(false);
+    closeComposer();
 
     showToast(id ? "Prompt actualizado." : "Prompt guardado.");
 
@@ -1262,7 +1417,21 @@ function handleListClick(event) {
 
   if (action === "favorite") {
 
-    togglePromptFavorite(id);
+    requestAdminAccess(async () => {
+
+      try {
+
+        await togglePromptFavorite(id);
+
+      } finally {
+
+        await releaseAdminAccess();
+
+      }
+
+    });
+
+    return;
 
   }
 
@@ -1272,6 +1441,8 @@ function handleListClick(event) {
 
     copyPrompt(id, actionButton);
 
+    return;
+
   }
 
 
@@ -1280,13 +1451,17 @@ function handleListClick(event) {
 
     openPromptViewer(id);
 
+    return;
+
   }
 
 
 
   if (action === "edit") {
 
-    openEditComposer(id);
+    requestAdminAccess(() => openEditComposer(id));
+
+    return;
 
   }
 
@@ -1294,12 +1469,11 @@ function handleListClick(event) {
 
   if (action === "delete") {
 
-    openDeleteDialog(id);
+    requestAdminAccess(() => openDeleteDialog(id));
 
   }
 
 }
-
 
 
 function handleSearchInput(event) {
@@ -1612,6 +1786,10 @@ function bindEvents() {
 
   elements.form.addEventListener("submit", handleSubmit);
 
+  elements.pinForm.addEventListener("submit", handlePinSubmit);
+
+  elements.cancelPinButton.addEventListener("click", cancelPinDialog);
+
   elements.promptList.addEventListener("click", handleListClick);
 
   elements.searchInput.addEventListener("input", handleSearchInput);
@@ -1658,31 +1836,29 @@ function bindEvents() {
 
   document.addEventListener("click", handleDocumentClick);
 
-  elements.openComposerButton.addEventListener("click", openCreateComposer);
+  elements.openComposerButton.addEventListener("click", () => {
 
-  elements.closeComposerButton.addEventListener("click", () => {
-
-    resetForm();
-
-    renderCategoryPicker(categories, []);
-
-    toggleCategoryManager(false);
-
-    toggleComposer(false);
+    requestAdminAccess(openCreateComposer);
 
   });
+
+  elements.closeComposerButton.addEventListener("click", closeComposer);
 
   elements.composerScreen.addEventListener("click", (event) => {
 
     if (event.target === elements.composerScreen) {
 
-      resetForm();
+      closeComposer();
 
-      renderCategoryPicker(categories, []);
+    }
 
-      toggleCategoryManager(false);
+  });
 
-      toggleComposer(false);
+  elements.pinScreen.addEventListener("click", (event) => {
+
+    if (event.target === elements.pinScreen) {
+
+      cancelPinDialog();
 
     }
 
@@ -1740,6 +1916,16 @@ function bindEvents() {
 
 
 
+    if (event.key === "Escape" && elements.pinScreen.classList.contains("is-open")) {
+
+      cancelPinDialog();
+
+      return;
+
+    }
+
+
+
     if (event.key === "Escape" && elements.categoryScreen.classList.contains("is-open")) {
 
       closeCategoryManager();
@@ -1772,13 +1958,7 @@ function bindEvents() {
 
     if (event.key === "Escape" && elements.composerScreen.classList.contains("is-open")) {
 
-      resetForm();
-
-      renderCategoryPicker(categories, []);
-
-      toggleCategoryManager(false);
-
-      toggleComposer(false);
+      closeComposer();
 
     }
 
