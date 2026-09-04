@@ -1,6 +1,5 @@
 import { createFirestoreService, hasFirebaseConfig } from "./firebase.js";
-
-import { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode } from "./ui.js";
+import { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, setPinLocked, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode } from "./ui.js";
 
 
 
@@ -622,7 +621,7 @@ async function releaseAdminAccess() {
 
   } catch {
 
-    // La sesión usa persistencia en memoria y se descarta al recargar la página.
+    // La autorización de edición solo vive en memoria y se descarta al recargar la página.
 
   }
 
@@ -646,7 +645,7 @@ function requestAdminAccess(action) {
 
   if (!firestoreService || typeof firestoreService.authenticatePin !== "function") {
 
-    showToast("La edición requiere conexión con Firebase.", "error");
+    showToast("La edición requiere que la API segura esté configurada.", "error");
 
     return;
 
@@ -690,15 +689,65 @@ async function handlePinSubmit(event) {
 
 
 
+  let result;
+
+
+
   try {
 
-    await firestoreService.authenticatePin(pin);
+    result = await firestoreService.authenticatePin(pin);
 
   } catch {
 
     setPinLoading(false);
 
-    setPinError("PIN incorrecto o acceso de edición no configurado.");
+    setPinError("No fue posible validar el PIN. Verifica que la API segura de Cloudflare esté configurada.");
+
+    elements.pinInput.focus();
+
+    elements.pinInput.select();
+
+    return;
+
+  }
+
+
+
+  if (!result || result.ok !== true) {
+
+    setPinLoading(false);
+
+
+
+    if (result && result.status === "locked") {
+
+      setPinLocked(true);
+
+      setPinError("Acceso de edición bloqueado por seguridad. Solo puede desbloquearse desde Cloudflare.");
+
+      return;
+
+    }
+
+
+
+    const remainingAttempts = Number(result && result.remainingAttempts);
+
+
+
+    if (Number.isInteger(remainingAttempts) && remainingAttempts > 0) {
+
+      const attemptLabel = remainingAttempts === 1 ? "Queda 1 intento" : `Quedan ${remainingAttempts} intentos`;
+
+      setPinError(`PIN incorrecto. ${attemptLabel} antes del bloqueo.`);
+
+    } else {
+
+      setPinError("PIN incorrecto.");
+
+    }
+
+
 
     elements.pinInput.focus();
 
@@ -1053,21 +1102,11 @@ async function saveCategory(name) {
 
   if (firestoreService) {
 
-    try {
+    await firestoreService.createCategory({ name });
 
-      await firestoreService.createCategory({ name });
+    refreshPrompts(prompts, [...categories, name]);
 
-      refreshPrompts(prompts, [...categories, name]);
-
-      return "firebase";
-
-    } catch {
-
-      await saveLocalCategory(name);
-
-      return "local";
-
-    }
+    return "firebase";
 
   }
 
@@ -2015,7 +2054,6 @@ function init() {
   }
 
 }
-
 
 
 init();

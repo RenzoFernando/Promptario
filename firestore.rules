@@ -4,8 +4,16 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /prompts/{document=**} {
       allow read: if true;
-      allow create, update, delete: if request.auth != null
-        && request.auth.token.email == "admin@promptario.app";
+      allow write: if false;
+    }
+
+    match /publicConfig/security {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

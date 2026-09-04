@@ -37,6 +37,12 @@
 - CSS3
 - JavaScript ES Modules
 - Firebase Firestore
+- Cloudflare Workers
+- Cloudflare D1
+
+## Seguridad de edición
+
+La lectura de prompts es pública. Las escrituras pasan por un Cloudflare Worker que valida un PIN privado, aplica un bloqueo global después de 5 intentos fallidos y usa una cuenta de servicio de Firebase guardada como secreto de Cloudflare. Las reglas de Firestore bloquean todas las escrituras directas desde el navegador.
 
 ## Autor y licencia
 

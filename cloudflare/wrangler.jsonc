@@ -1,0 +1,17 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "promptario-security",
+	"main": "src/index.js",
+	"compatibility_date": "2026-09-03",
+	"workers_dev": true,
+	"vars": {
+		"FIREBASE_PROJECT_ID": "promptario-58cd3",
+		"ALLOWED_ORIGIN": "https://renzofernando.github.io"
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_id": "8b814bbb-843c-4a42-a1fc-095191357fdc"
+		}
+	]
+}

@@ -2243,6 +2243,15 @@ select:focus {
   line-height: 1.4;
 }
 
+.pin-screen.is-locked .pin-dialog {
+  border-color: #e9b6ad;
+}
+
+.pin-screen.is-locked .pin-input {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
 .pin-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

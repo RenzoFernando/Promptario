@@ -946,11 +946,29 @@ function setPinError(message = "") {
 
 
 
+function setPinLocked(isLocked) {
+
+  elements.pinScreen.classList.toggle("is-locked", isLocked);
+
+  elements.pinInput.disabled = isLocked;
+
+  elements.pinSubmitButton.disabled = isLocked;
+
+  elements.cancelPinButton.disabled = false;
+
+  elements.pinSubmitButton.textContent = isLocked ? "Bloqueado" : "Continuar";
+
+}
+
+
+
 function resetPinDialog() {
 
   elements.pinForm.reset();
 
   setPinError("");
+
+  setPinLocked(false);
 
   setPinLoading(false);
 
@@ -1119,4 +1137,4 @@ function resetForm() {
 
 
 
-export { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode };
+export { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, setPinLocked, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode };
