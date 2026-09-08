@@ -69,9 +69,9 @@ button {
   row-gap: 10px;
   width: calc(100% - 32px);
   max-width: var(--max-width);
-  height: 100dvh;
+  height: calc(100dvh - 54px);
   margin: 0 auto;
-  padding: 18px 0;
+  padding: 14px 0 10px;
 }
 
 .site-header {
@@ -83,6 +83,16 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+}
+
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.unlock-button[hidden] {
+  display: none;
 }
 
 .brand {
@@ -1329,11 +1339,12 @@ select:focus {
   display: grid;
   width: calc(100% - 32px);
   max-width: var(--max-width);
-  gap: 3px;
-  margin: 24px auto 0;
-  padding: 20px 8px 26px;
+  gap: 2px;
+  margin: 0 auto;
+  padding: 7px 8px 9px;
   color: #69645d;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
+  line-height: 1.35;
   text-align: center;
 }
 
@@ -1498,6 +1509,16 @@ select:focus {
   }
 
   .topbar-action {
+    width: 100%;
+  }
+
+  .topbar-actions {
+    width: 100%;
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .unlock-button {
     width: 100%;
   }
 
@@ -2254,7 +2275,7 @@ select:focus {
 
 .pin-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 10px;
 }
 
@@ -2262,17 +2283,141 @@ select:focus {
   width: 100%;
 }
 
+.recovery-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 39;
+  display: none;
+  min-height: 100vh;
+  padding: 20px;
+  overflow: auto;
+  background: rgba(247, 245, 239, 0.86);
+  backdrop-filter: blur(18px);
+}
+
+.recovery-screen.is-open {
+  display: grid;
+  align-items: center;
+}
+
+.recovery-dialog {
+  display: grid;
+  gap: 20px;
+  width: min(100%, 420px);
+  margin: auto;
+  padding: clamp(22px, 4vw, 30px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.recovery-heading {
+  display: grid;
+  gap: 8px;
+}
+
+.recovery-heading p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.recovery-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.recovery-actions button {
+  width: 100%;
+}
+
+.recovery-page {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  overflow: auto;
+}
+
+.recovery-page-shell {
+  display: grid;
+  align-content: center;
+  width: calc(100% - 32px);
+  max-width: 620px;
+  min-height: 0;
+  gap: 18px;
+  margin: 0 auto;
+  padding: 24px 0;
+}
+
+.recovery-page-brand {
+  width: fit-content;
+}
+
+.recovery-page-panel {
+  display: grid;
+  gap: 18px;
+  padding: clamp(22px, 4vw, 30px);
+}
+
+.recovery-page-status {
+  min-height: 22px;
+  margin: 0;
+  color: var(--muted-strong);
+}
+
+.recovery-pin-form {
+  display: grid;
+  gap: 14px;
+}
+
+.recovery-pin-form[hidden] {
+  display: none;
+}
+
+.recovery-pin-form .field-group {
+  display: grid;
+  gap: 7px;
+}
+
+.recovery-pin-form .field-group > span {
+  color: var(--muted-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.recovery-pin-form input {
+  height: 52px;
+  text-align: center;
+  font-size: 1.2rem;
+  font-weight: 760;
+  letter-spacing: 0.3em;
+}
+
+.recovery-back-link {
+  width: 100%;
+  text-decoration: none;
+}
+
+.recovery-back-link[hidden] {
+  display: none;
+}
+
 @media (max-width: 719px) {
-  .pin-screen {
+  .pin-screen,
+  .recovery-screen {
     padding: 10px;
   }
 
-  .pin-dialog {
+  .pin-dialog,
+  .recovery-dialog {
     border-radius: 22px;
     padding: 20px;
   }
 
-  .pin-actions {
+  .pin-actions,
+  .recovery-actions {
     grid-template-columns: minmax(0, 1fr);
   }
 }

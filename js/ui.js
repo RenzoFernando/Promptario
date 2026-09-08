@@ -64,6 +64,8 @@ const elements = {
 
   openComposerButton: document.querySelector("#open-composer-button"),
 
+  unlockButton: document.querySelector("#unlock-button"),
+
   closeComposerButton: document.querySelector("#close-composer-button"),
 
   composerScreen: document.querySelector("#composer-screen"),
@@ -76,9 +78,15 @@ const elements = {
 
   pinError: document.querySelector("#pin-error"),
 
-  pinSubmitButton: document.querySelector("#submit-pin-button"),
-
   cancelPinButton: document.querySelector("#cancel-pin-button"),
+
+  recoveryScreen: document.querySelector("#recovery-screen"),
+
+  recoveryMessage: document.querySelector("#recovery-message"),
+
+  sendRecoveryButton: document.querySelector("#send-recovery-button"),
+
+  cancelRecoveryButton: document.querySelector("#cancel-recovery-button"),
 
   viewerScreen: document.querySelector("#viewer-screen"),
 
@@ -916,7 +924,7 @@ function updateViewMode(mode) {
 
 function updateBodyModalState() {
 
-  const hasOpenModal = elements.pinScreen.classList.contains("is-open") || elements.composerScreen.classList.contains("is-open") || elements.categoryScreen.classList.contains("is-open") || elements.viewerScreen.classList.contains("is-open") || elements.deleteScreen.classList.contains("is-open");
+  const hasOpenModal = elements.pinScreen.classList.contains("is-open") || elements.recoveryScreen.classList.contains("is-open") || elements.composerScreen.classList.contains("is-open") || elements.categoryScreen.classList.contains("is-open") || elements.viewerScreen.classList.contains("is-open") || elements.deleteScreen.classList.contains("is-open");
 
   document.body.classList.toggle("has-modal-open", hasOpenModal);
 
@@ -928,11 +936,7 @@ function setPinLoading(isLoading) {
 
   elements.pinInput.disabled = isLoading;
 
-  elements.pinSubmitButton.disabled = isLoading;
-
   elements.cancelPinButton.disabled = isLoading;
-
-  elements.pinSubmitButton.textContent = isLoading ? "Verificando" : "Continuar";
 
 }
 
@@ -952,11 +956,7 @@ function setPinLocked(isLocked) {
 
   elements.pinInput.disabled = isLocked;
 
-  elements.pinSubmitButton.disabled = isLocked;
-
   elements.cancelPinButton.disabled = false;
-
-  elements.pinSubmitButton.textContent = isLocked ? "Bloqueado" : "Continuar";
 
 }
 
@@ -989,6 +989,61 @@ function togglePinDialog(isOpen) {
   if (isOpen) {
 
     elements.pinInput.focus();
+
+  }
+
+}
+
+
+function setEditingLocked(isLocked) {
+
+  elements.unlockButton.hidden = !isLocked;
+
+  document.body.classList.toggle("is-editing-locked", isLocked);
+
+}
+
+
+function setRecoveryMessage(message = "Enviaremos un enlace al correo del administrador.") {
+
+  elements.recoveryMessage.textContent = message;
+
+}
+
+
+function setRecoveryLoading(isLoading) {
+
+  elements.sendRecoveryButton.disabled = isLoading;
+
+  elements.cancelRecoveryButton.disabled = isLoading;
+
+  elements.sendRecoveryButton.textContent = isLoading ? "Enviando" : "Enviar enlace";
+
+}
+
+
+function resetRecoveryDialog() {
+
+  setRecoveryMessage();
+
+  setRecoveryLoading(false);
+
+}
+
+
+function toggleRecoveryDialog(isOpen) {
+
+  elements.recoveryScreen.classList.toggle("is-open", isOpen);
+
+  elements.recoveryScreen.setAttribute("aria-hidden", String(!isOpen));
+
+  updateBodyModalState();
+
+
+
+  if (isOpen) {
+
+    elements.sendRecoveryButton.focus();
 
   }
 
@@ -1137,4 +1192,4 @@ function resetForm() {
 
 
 
-export { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, setPinLocked, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode };
+export { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, resetRecoveryDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setEditingLocked, setPinError, setPinLoading, setPinLocked, setRecoveryLoading, setRecoveryMessage, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleRecoveryDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode };

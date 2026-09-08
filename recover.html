@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Recuperación del acceso de edición de Promptario.">
+    <title>Recuperar Promptario</title>
+    <link rel="icon" href="assets/favicon.ico" sizes="any">
+    <link rel="stylesheet" href="css/styles.css">
+  </head>
+  <body class="recovery-page">
+    <main class="recovery-page-shell">
+      <a class="brand recovery-page-brand" href="./" aria-label="Volver a Promptario">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="assets/favicon.ico" alt="">
+        </span>
+        <span class="brand-copy">
+          <span class="brand-name">Promptario</span>
+          <span class="brand-subtitle">Recuperación de acceso</span>
+        </span>
+      </a>
+
+      <section class="panel recovery-page-panel" aria-labelledby="recovery-page-title">
+        <div class="panel-heading">
+          <h1 id="recovery-page-title">Recuperar Promptario</h1>
+        </div>
+
+        <p class="recovery-page-status" id="recovery-page-status" role="status" aria-live="polite">Validando enlace.</p>
+
+        <form class="recovery-pin-form" id="recovery-pin-form" autocomplete="off" novalidate hidden>
+          <label class="field-group" for="new-pin">
+            <span>Nuevo PIN</span>
+            <input id="new-pin" name="new-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required>
+          </label>
+
+          <label class="field-group" for="confirm-pin">
+            <span>Confirmar PIN</span>
+            <input id="confirm-pin" name="confirm-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" required>
+          </label>
+
+          <p class="pin-error" id="recovery-pin-error" role="alert" aria-live="polite"></p>
+          <button class="primary-button" id="change-pin-button" type="submit">Cambiar PIN</button>
+        </form>
+
+        <a class="ghost-button recovery-back-link" id="recovery-back-link" href="./" hidden>Volver a Promptario</a>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p><a class="footer-brand-link" href="https://github.com/RenzoFernando/Promptario" target="_blank" rel="noopener noreferrer"><strong>Promptario</strong></a> — Gestión y organización de prompts</p>
+      <p>© 2026 — Renzo Fernando Mosquera Daza</p>
+    </footer>
+
+    <script type="module" src="js/recover.js"></script>
+  </body>
+</html>

@@ -1,5 +1,5 @@
 import { createFirestoreService, hasFirebaseConfig } from "./firebase.js";
-import { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, setCustomSelectValue, setDeletePromptName, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, setPinLocked, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode } from "./ui.js";
+import { closeCustomSelects, elements, fillForm, fillViewer, getSelectedCategories, renderCategoryFilter, renderCategoryPicker, renderPrompts, renderSelectedCategoryPreview, resetForm, resetPinDialog, resetRecoveryDialog, setCustomSelectValue, setDeletePromptName, setEditingLocked, setFavoriteFilter, setFormFavorite, setFormLoading, setFormMode, setPinError, setPinLoading, setPinLocked, setRecoveryLoading, setRecoveryMessage, showToast, toggleCategoryManager, toggleComposer, toggleCustomSelect, toggleDeleteDialog, togglePinDialog, toggleRecoveryDialog, toggleViewer, updateCategoryFilter, updateCharacterCounters, updateMarkdownPreview, updateSortDirection, updateSortField, updateViewMode } from "./ui.js";
 
 
 
@@ -46,6 +46,10 @@ let pendingDeleteId = null;
 let activeViewId = null;
 
 let pendingProtectedAction = null;
+
+let editingLocked = false;
+
+let pinSubmitInFlight = false;
 
 
 
@@ -641,11 +645,53 @@ function cancelPinDialog() {
 
 
 
+function setApplicationLockState(isLocked) {
+
+  editingLocked = Boolean(isLocked);
+
+  setEditingLocked(editingLocked);
+
+}
+
+
+
+function openRecoveryDialog() {
+
+  resetRecoveryDialog();
+
+  toggleRecoveryDialog(true);
+
+}
+
+
+
+function closeRecoveryDialog() {
+
+  resetRecoveryDialog();
+
+  toggleRecoveryDialog(false);
+
+}
+
+
+
 function requestAdminAccess(action) {
 
   if (!firestoreService || typeof firestoreService.authenticatePin !== "function") {
 
     showToast("La edición requiere que la API segura esté configurada.", "error");
+
+    return;
+
+  }
+
+
+
+  if (editingLocked) {
+
+    pendingProtectedAction = null;
+
+    openRecoveryDialog();
 
     return;
 
@@ -663,9 +709,45 @@ function requestAdminAccess(action) {
 
 
 
+function handlePinInput() {
+
+  const normalizedPin = elements.pinInput.value.replace(/\D/g, "").slice(0, 4);
+
+
+
+  if (elements.pinInput.value !== normalizedPin) {
+
+    elements.pinInput.value = normalizedPin;
+
+  }
+
+
+
+  if (normalizedPin.length === 4 && !pinSubmitInFlight) {
+
+    handlePinSubmit();
+
+  }
+
+}
+
+
+
 async function handlePinSubmit(event) {
 
-  event.preventDefault();
+  if (event) {
+
+    event.preventDefault();
+
+  }
+
+
+
+  if (pinSubmitInFlight) {
+
+    return;
+
+  }
 
 
 
@@ -675,13 +757,13 @@ async function handlePinSubmit(event) {
 
   if (!/^\d{4}$/.test(pin)) {
 
-    setPinError("El PIN debe tener exactamente 4 dígitos numéricos.");
-
     return;
 
   }
 
 
+
+  pinSubmitInFlight = true;
 
   setPinLoading(true);
 
@@ -699,17 +781,23 @@ async function handlePinSubmit(event) {
 
   } catch {
 
+    pinSubmitInFlight = false;
+
     setPinLoading(false);
 
-    setPinError("No fue posible validar el PIN. Verifica que la API segura de Cloudflare esté configurada.");
+    setPinError("No se pudo validar.");
+
+    elements.pinInput.value = "";
 
     elements.pinInput.focus();
-
-    elements.pinInput.select();
 
     return;
 
   }
+
+
+
+  pinSubmitInFlight = false;
 
 
 
@@ -721,9 +809,15 @@ async function handlePinSubmit(event) {
 
     if (result && result.status === "locked") {
 
-      setPinLocked(true);
+      pendingProtectedAction = null;
 
-      setPinError("Acceso de edición bloqueado por seguridad. Solo puede desbloquearse desde Cloudflare.");
+      setApplicationLockState(true);
+
+      resetPinDialog();
+
+      togglePinDialog(false);
+
+      openRecoveryDialog();
 
       return;
 
@@ -731,33 +825,19 @@ async function handlePinSubmit(event) {
 
 
 
-    const remainingAttempts = Number(result && result.remainingAttempts);
+    setPinError("PIN incorrecto.");
 
-
-
-    if (Number.isInteger(remainingAttempts) && remainingAttempts > 0) {
-
-      const attemptLabel = remainingAttempts === 1 ? "Queda 1 intento" : `Quedan ${remainingAttempts} intentos`;
-
-      setPinError(`PIN incorrecto. ${attemptLabel} antes del bloqueo.`);
-
-    } else {
-
-      setPinError("PIN incorrecto.");
-
-    }
-
-
+    elements.pinInput.value = "";
 
     elements.pinInput.focus();
-
-    elements.pinInput.select();
 
     return;
 
   }
 
 
+
+  setApplicationLockState(false);
 
   const action = pendingProtectedAction;
 
@@ -772,6 +852,74 @@ async function handlePinSubmit(event) {
   if (typeof action === "function") {
 
     await action();
+
+  }
+
+}
+
+
+
+async function handleRecoveryRequest() {
+
+  if (!firestoreService || typeof firestoreService.requestRecovery !== "function") {
+
+    setRecoveryMessage("No se pudo enviar el enlace.");
+
+    return;
+
+  }
+
+
+
+  setRecoveryLoading(true);
+
+
+
+  try {
+
+    await firestoreService.requestRecovery();
+
+    setRecoveryLoading(false);
+
+    setRecoveryMessage("Enlace enviado.");
+
+    elements.sendRecoveryButton.disabled = true;
+
+    elements.sendRecoveryButton.textContent = "Enviado";
+
+  } catch {
+
+    setRecoveryLoading(false);
+
+    setRecoveryMessage("No se pudo enviar el enlace.");
+
+  }
+
+}
+
+
+
+async function refreshSecurityState() {
+
+  if (!firestoreService || typeof firestoreService.getSecurityStatus !== "function") {
+
+    setApplicationLockState(false);
+
+    return;
+
+  }
+
+
+
+  try {
+
+    const result = await firestoreService.getSecurityStatus();
+
+    setApplicationLockState(Boolean(result && result.locked));
+
+  } catch {
+
+    setApplicationLockState(false);
 
   }
 
@@ -1781,6 +1929,10 @@ async function loadFirestoreMode() {
 
 
 
+    await refreshSecurityState();
+
+
+
     const unsubscribePrompts = firestoreService.subscribePrompts((nextPrompts) => {
 
       refreshPrompts(nextPrompts, categories);
@@ -1827,7 +1979,15 @@ function bindEvents() {
 
   elements.pinForm.addEventListener("submit", handlePinSubmit);
 
+  elements.pinInput.addEventListener("input", handlePinInput);
+
   elements.cancelPinButton.addEventListener("click", cancelPinDialog);
+
+  elements.unlockButton.addEventListener("click", openRecoveryDialog);
+
+  elements.sendRecoveryButton.addEventListener("click", handleRecoveryRequest);
+
+  elements.cancelRecoveryButton.addEventListener("click", closeRecoveryDialog);
 
   elements.promptList.addEventListener("click", handleListClick);
 
@@ -1903,6 +2063,17 @@ function bindEvents() {
 
   });
 
+
+  elements.recoveryScreen.addEventListener("click", (event) => {
+
+    if (event.target === elements.recoveryScreen) {
+
+      closeRecoveryDialog();
+
+    }
+
+  });
+
   elements.categoryScreen.addEventListener("click", (event) => {
 
     if (event.target === elements.categoryScreen) {
@@ -1958,6 +2129,15 @@ function bindEvents() {
     if (event.key === "Escape" && elements.pinScreen.classList.contains("is-open")) {
 
       cancelPinDialog();
+
+      return;
+
+    }
+
+
+    if (event.key === "Escape" && elements.recoveryScreen.classList.contains("is-open")) {
+
+      closeRecoveryDialog();
 
       return;
 

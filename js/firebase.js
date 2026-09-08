@@ -148,6 +148,33 @@ async function createFirestoreService() {
   }
 
   return {
+    async getSecurityStatus() {
+      return callSecurityApi("/security/status", {
+        method: "GET"
+      });
+    },
+
+    async requestRecovery() {
+      return callSecurityApi("/recovery/request", {
+        method: "POST",
+        body: JSON.stringify({})
+      });
+    },
+
+    async verifyRecoveryToken(token) {
+      return callSecurityApi("/recovery/verify", {
+        method: "POST",
+        body: JSON.stringify({ token })
+      });
+    },
+
+    async resetPin(token, pin, confirmation) {
+      return callSecurityApi("/recovery/reset", {
+        method: "POST",
+        body: JSON.stringify({ token, pin, confirmation })
+      });
+    },
+
     async authenticatePin(pin) {
       if (!/^\d{4}$/.test(pin)) {
         throw new Error("invalid-pin-format");

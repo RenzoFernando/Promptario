@@ -21,7 +21,10 @@
               <span class="brand-subtitle" id="library-title">Colección de prompts</span>
             </span>
           </a>
-          <button class="primary-button topbar-action" id="open-composer-button" type="button">Nuevo prompt</button>
+          <div class="topbar-actions">
+            <button class="ghost-button unlock-button" id="unlock-button" type="button" hidden>Desbloquear</button>
+            <button class="primary-button topbar-action" id="open-composer-button" type="button">Nuevo prompt</button>
+          </div>
         </nav>
       </header>
 
@@ -109,7 +112,6 @@
       <div class="pin-dialog" role="dialog" aria-modal="true">
         <div class="panel-heading pin-heading">
           <h2 id="pin-dialog-title">Acceso de edición</h2>
-          <p>Ingresa tu PIN de 4 dígitos. Después de 5 intentos fallidos, la edición se bloquea y solo el administrador puede restablecerla.</p>
         </div>
 
         <form id="pin-form" class="pin-form" autocomplete="off" novalidate>
@@ -118,9 +120,21 @@
           <p class="pin-error" id="pin-error" role="alert" aria-live="polite"></p>
           <div class="pin-actions">
             <button class="ghost-button" id="cancel-pin-button" type="button">Cancelar</button>
-            <button class="primary-button" id="submit-pin-button" type="submit">Continuar</button>
           </div>
         </form>
+      </div>
+    </section>
+
+    <section class="recovery-screen" id="recovery-screen" aria-labelledby="recovery-dialog-title" aria-hidden="true">
+      <div class="recovery-dialog" role="dialog" aria-modal="true">
+        <div class="panel-heading recovery-heading">
+          <h2 id="recovery-dialog-title">Recuperar acceso</h2>
+          <p id="recovery-message">Enviaremos un enlace al correo del administrador.</p>
+        </div>
+        <div class="recovery-actions">
+          <button class="ghost-button" id="cancel-recovery-button" type="button">Cancelar</button>
+          <button class="primary-button" id="send-recovery-button" type="button">Enviar enlace</button>
+        </div>
       </div>
     </section>
 

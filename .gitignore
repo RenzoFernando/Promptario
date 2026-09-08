@@ -19,3 +19,6 @@ firebase-debug.log
 firebase-service-account*.json
 cloudflare/.dev.vars
 cloudflare/.wrangler/
+.promptario-admin.json
+.promptario-wrangler.json
+.wrangler/
