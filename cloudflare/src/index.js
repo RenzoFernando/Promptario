@@ -1271,15 +1271,12 @@ async function issueRecovery(env, client, { enforceCooldown = true } = {}) {
 }
 
 async function handleSecurityStatus(request, env, origin) {
-  const client = getClientInfo(request);
-  const state = await getSecurityState(env.DB);
+    const state = await getSecurityState(env.DB);
 
-  await logSecurityEvent(env.DB, "page-view", client, { path: "/security/status" });
-
-  return jsonResponse({
-    ok: true,
-    locked: state.locked
-  }, 200, origin);
+    return jsonResponse({
+        ok: true,
+        locked: state.locked
+    }, 200, origin);
 }
 
 async function handleAuth(request, env, origin) {
