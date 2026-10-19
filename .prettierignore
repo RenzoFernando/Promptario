@@ -1,0 +1,24 @@
+# Datos, dependencias y archivos generados
+node_modules/
+dist/
+build/
+coverage/
+.firebase/
+.wrangler/
+cloudflare/.wrangler/
+.env
+.env.*
+.promptario-admin.json
+.promptario-wrangler.json
+
+# Archivos no compatibles con Prettier o gestionados por otras herramientas
+*.ps1
+*.sql
+*.rules
+*.txt
+*.ico
+*.png
+LICENSE
+
+# El código fuente del proyecto se formatea, no los reportes de trabajo
+Reporte_*.md

@@ -83,3 +83,21 @@ ON security_events (created_at DESC);
 
 CREATE INDEX IF NOT EXISTS idx_security_events_type_created_at
 ON security_events (type, created_at DESC);
+
+-- El contenido privado no se publica en Firestore.
+CREATE TABLE IF NOT EXISTS private_prompts (
+  id TEXT PRIMARY KEY,
+  content TEXT NOT NULL,
+  updated_at TEXT NOT NULL
+);
+
+-- Metadatos privados: nunca se publican en documentos legibles sin autorización.
+CREATE TABLE IF NOT EXISTS private_prompt_details (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  categories TEXT NOT NULL DEFAULT '[]',
+  is_favorite INTEGER NOT NULL DEFAULT 0 CHECK (is_favorite IN (0, 1)),
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  FOREIGN KEY (id) REFERENCES private_prompts(id) ON DELETE CASCADE
+);

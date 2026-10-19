@@ -1,0 +1,10 @@
+# Promptario
+
+> Aplicación web para guardar, buscar, organizar y reutilizar prompts.
+
+- Aplicación: https://renzofernando.github.io/Promptario/
+- Código público: https://github.com/RenzoFernando/Promptario
+
+Funcionalidades públicas: consulta, búsqueda, categorías, favoritos, vistas en cuadrícula, lista extendida e índice de títulos, y copia al portapapeles. La edición requiere autorización.
+
+La recuperación de acceso y los prompts privados no son documentación ni contenido público indexable. El acceso a los privados requiere un PIN y autorización del servidor.

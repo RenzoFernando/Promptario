@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /Promptario/
+Disallow: /Promptario/recover.html
+Disallow: /Promptario/404.html
+Sitemap: https://renzofernando.github.io/Promptario/sitemap.xml

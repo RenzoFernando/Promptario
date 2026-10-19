@@ -45,7 +45,9 @@ function renderInline(value) {
       return stash(renderedLabel);
     }
 
-    return stash(`<a href="${escapeAttribute(safeHref)}" target="_blank" rel="noopener noreferrer">${renderedLabel}</a>`);
+    return stash(
+      `<a href="${escapeAttribute(safeHref)}" target="_blank" rel="noopener noreferrer">${renderedLabel}</a>`
+    );
   });
 
   text = escapeHtml(text);
@@ -92,7 +94,8 @@ function renderListItemContent(value) {
 
 function renderList(lines, startIndex, baseIndent, type) {
   const firstItem = getListItem(lines[startIndex]);
-  const startAttribute = type === "ol" && firstItem && firstItem.start !== 1 ? ` start="${firstItem.start}"` : "";
+  const startAttribute =
+    type === "ol" && firstItem && firstItem.start !== 1 ? ` start="${firstItem.start}"` : "";
   let html = `<${type}${startAttribute}>`;
   let index = startIndex;
 
@@ -227,15 +230,28 @@ function renderTable(lines, startIndex) {
     index += 1;
   }
 
-  const headerHtml = headers.map((cell, cellIndex) => {
-    const alignment = alignments[cellIndex] ? ` style="text-align: ${alignments[cellIndex]}"` : "";
-    return `<th${alignment}>${renderInline(cell)}</th>`;
-  }).join("");
+  const headerHtml = headers
+    .map((cell, cellIndex) => {
+      const alignment = alignments[cellIndex]
+        ? ` style="text-align: ${alignments[cellIndex]}"`
+        : "";
+      return `<th${alignment}>${renderInline(cell)}</th>`;
+    })
+    .join("");
 
-  const bodyHtml = rows.map((row) => `<tr>${headers.map((_, cellIndex) => {
-    const alignment = alignments[cellIndex] ? ` style="text-align: ${alignments[cellIndex]}"` : "";
-    return `<td${alignment}>${renderInline(row[cellIndex] || "")}</td>`;
-  }).join("")}</tr>`).join("");
+  const bodyHtml = rows
+    .map(
+      (row) =>
+        `<tr>${headers
+          .map((_, cellIndex) => {
+            const alignment = alignments[cellIndex]
+              ? ` style="text-align: ${alignments[cellIndex]}"`
+              : "";
+            return `<td${alignment}>${renderInline(row[cellIndex] || "")}</td>`;
+          })
+          .join("")}</tr>`
+    )
+    .join("");
 
   return {
     html: `<div class="markdown-table-wrap"><table><thead><tr>${headerHtml}</tr></thead>${bodyHtml ? `<tbody>${bodyHtml}</tbody>` : ""}</table></div>`,
@@ -258,7 +274,13 @@ function isBlockStart(lines, index) {
     return true;
   }
 
-  if (isFence(line) || /^\s*#{1,6}\s+/.test(line) || /^\s*>/.test(line) || getListItem(line) || isHorizontalRule(line)) {
+  if (
+    isFence(line) ||
+    /^\s*#{1,6}\s+/.test(line) ||
+    /^\s*>/.test(line) ||
+    getListItem(line) ||
+    isHorizontalRule(line)
+  ) {
     return true;
   }
 
@@ -289,7 +311,11 @@ function renderBlocks(lines) {
       while (index < lines.length) {
         const closingFence = lines[index].match(/^\s*(`{3,}|~{3,})\s*$/);
 
-        if (closingFence && closingFence[1][0] === fenceCharacter && closingFence[1].length >= fenceLength) {
+        if (
+          closingFence &&
+          closingFence[1][0] === fenceCharacter &&
+          closingFence[1].length >= fenceLength
+        ) {
           index += 1;
           break;
         }
@@ -360,7 +386,9 @@ function renderBlocks(lines) {
 }
 
 function renderMarkdown(value) {
-  const normalized = String(value || "").replaceAll("\r\n", "\n").replaceAll("\r", "\n");
+  const normalized = String(value || "")
+    .replaceAll("\r\n", "\n")
+    .replaceAll("\r", "\n");
   return renderBlocks(normalized.split("\n"));
 }
 

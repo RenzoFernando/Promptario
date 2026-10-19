@@ -1,0 +1,25 @@
+{
+  "name": "promptario",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Biblioteca web para organizar prompts",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint \"assets/js/**/*.js\" \"cloudflare/src/**/*.js\"",
+    "lint:fix": "eslint \"assets/js/**/*.js\" \"cloudflare/src/**/*.js\" --fix",
+    "fix": "npm run format && npm run lint:fix",
+    "check": "npm run format:check && npm run lint"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.1",
+    "@prettier/plugin-xml": "3.4.2",
+    "eslint": "9.39.1",
+    "globals": "16.4.0",
+    "prettier": "3.6.2"
+  }
+}

@@ -1,114 +1,398 @@
 <!doctype html>
 <html lang="es">
   <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Promptario es una aplicación web para guardar, consultar, ordenar y copiar prompts reutilizables.">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Promptario es una aplicación web para guardar, consultar, ordenar y copiar prompts reutilizables."
+    />
     <title>Promptario</title>
-    <link rel="icon" href="assets/favicon.ico" sizes="any">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="canonical" href="https://renzofernando.github.io/Promptario/" />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CO" />
+    <meta property="og:site_name" content="Promptario" />
+    <meta property="og:title" content="Promptario" />
+    <meta
+      property="og:description"
+      content="Biblioteca web para guardar, organizar, consultar y reutilizar prompts por categorías y favoritos."
+    />
+    <meta property="og:url" content="https://renzofernando.github.io/Promptario/" />
+    <meta
+      property="og:image"
+      content="https://renzofernando.github.io/Promptario/assets/favicon.png"
+    />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Promptario" />
+    <meta
+      name="twitter:description"
+      content="Guarda, organiza y reutiliza tus prompts desde una biblioteca web."
+    />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Promptario",
+        "url": "https://renzofernando.github.io/Promptario/",
+        "description": "Biblioteca web para gestionar y organizar prompts reutilizables.",
+        "applicationCategory": "ProductivityApplication",
+        "operatingSystem": "Web",
+        "author": {
+          "@type": "Person",
+          "name": "Renzo Fernando Mosquera Daza",
+          "url": "https://github.com/RenzoFernando"
+        }
+      }
+    </script>
+    <link rel="icon" href="assets/favicon.ico" sizes="any" />
+    <link rel="stylesheet" href="assets/css/styles.css" />
   </head>
   <body>
     <div class="app-shell">
       <header class="site-header">
         <nav class="topbar" aria-label="Principal">
-          <a class="brand" href="./" aria-label="Promptario — Colección de prompts">
-            <span class="brand-mark" aria-hidden="true">
-              <img src="assets/favicon.ico" alt="">
-            </span>
-            <span class="brand-copy">
-              <span class="brand-name">Promptario</span>
-              <span class="brand-subtitle" id="library-title">Colección de prompts</span>
-            </span>
+          <a class="brand" href="./" aria-label="Promptario — Inicio">
+            <span class="brand-mark" aria-hidden="true"
+              ><img src="assets/favicon.ico" alt=""
+            /></span>
+            <span class="brand-name">Promptario</span>
+            <span class="brand-divider" aria-hidden="true"></span>
+            <span class="brand-subtitle" id="library-title">Colección de prompts</span>
           </a>
           <div class="topbar-actions">
-            <button class="ghost-button unlock-button" id="unlock-button" type="button" hidden>Desbloquear</button>
-            <button class="primary-button topbar-action" id="open-composer-button" type="button">Nuevo prompt</button>
+            <button
+              class="mobile-sidebar-toggle"
+              id="mobile-sidebar-toggle"
+              type="button"
+              aria-controls="library-sidebar"
+              aria-expanded="true"
+              aria-label="Mostrar u ocultar menú"
+              title="Mostrar u ocultar menú"
+            >
+              <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons/icons.svg#menu"></use>
+              </svg>
+            </button>
+            <button class="ghost-button unlock-button" id="unlock-button" type="button" hidden>
+              Desbloquear
+            </button>
+            <button class="primary-button topbar-action" id="open-composer-button" type="button">
+              <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons/icons.svg#plus"></use>
+              </svg>
+              Nuevo prompt
+            </button>
           </div>
         </nav>
       </header>
 
-      <main class="main-layout">
-        <section class="panel library-panel" aria-labelledby="library-title">
-          <div class="library-header">
-            <div class="library-controls" aria-label="Controles de búsqueda, categoría, favoritos, ordenamiento y vista">
-              <label class="search-field" for="search-input">
-                <span>Buscar</span>
-                <input id="search-input" name="search" type="search" placeholder="Buscar por título, contenido o categoría">
-              </label>
+      <aside class="library-sidebar" id="library-sidebar" aria-label="Navegación de la biblioteca">
+        <div class="sidebar-group">
+          <div class="sidebar-heading-row">
+            <p class="sidebar-heading">BIBLIOTECA</p>
+            <button
+              class="sidebar-toggle"
+              id="sidebar-toggle"
+              type="button"
+              aria-controls="library-sidebar"
+              aria-expanded="true"
+              aria-label="Contraer barra lateral"
+              title="Contraer barra lateral"
+            >
+              <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons/icons.svg#chevron-left"></use>
+              </svg>
+            </button>
+          </div>
+          <button class="sidebar-link is-active" id="sidebar-all" type="button" aria-pressed="true">
+            <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <use href="assets/icons/icons.svg#library"></use>
+            </svg>
+            <span>Todos los prompts</span><span class="sidebar-count" id="sidebar-all-count"></span>
+          </button>
+          <button class="sidebar-link" id="sidebar-favorites" type="button" aria-pressed="false">
+            <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <use href="assets/icons/icons.svg#star"></use>
+            </svg>
+            <span>Favoritos</span><span class="sidebar-count" id="sidebar-favorites-count"></span>
+          </button>
+          <button class="sidebar-link" id="sidebar-private" type="button" aria-pressed="false">
+            <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+              <use href="assets/icons/icons.svg#lock"></use>
+            </svg>
+            <span>Privados</span>
+          </button>
+        </div>
+        <div class="sidebar-group sidebar-category-group">
+          <p class="sidebar-heading">CATEGORÍAS</p>
+          <div id="sidebar-categories" class="sidebar-category-list"></div>
+        </div>
+      </aside>
 
-              <div class="select-label custom-select category-filter-field" data-select-menu="category-filter">
-                <span id="category-filter-label">Categoría</span>
-                <input id="category-filter" name="category-filter" type="hidden" value="all">
-                <button class="select-button" id="category-filter-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="category-filter-label category-filter-current">
-                  <span id="category-filter-current">Todas</span>
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+      <main class="main-layout">
+        <section class="library-panel" aria-labelledby="section-title">
+          <div class="library-intro">
+            <div class="library-intro-top">
+              <span id="section-eyebrow">BIBLIOTECA PERSONAL</span>
+            </div>
+            <div class="library-title-line">
+              <h1 id="section-title">Todos los prompts</h1>
+              <span id="section-counter"> / 00</span>
+            </div>
+            <p id="section-description">Encuentra, consulta y organiza tus puntos de partida.</p>
+          </div>
+
+          <div class="library-header">
+            <label class="search-field" for="search-input">
+              <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                <use href="assets/icons/icons.svg#search"></use>
+              </svg>
+              <span class="sr-only">Buscar prompts</span>
+              <input
+                id="search-input"
+                name="search"
+                type="search"
+                placeholder="Buscar por título, contenido o categoría"
+                autocomplete="off"
+              />
+            </label>
+            <div class="library-toolbar">
+              <div
+                class="select-label custom-select category-filter-field"
+                data-select-menu="category-filter"
+              >
+                <span class="sr-only" id="category-filter-label">Categoría</span>
+                <input id="category-filter" name="category-filter" type="hidden" value="all" />
+                <button
+                  class="select-button"
+                  id="category-filter-button"
+                  type="button"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-labelledby="category-filter-current"
+                >
+                  <span class="control-prefix">Categoría: </span
+                  ><span id="category-filter-current">Todas</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="m7 10 5 5 5-5"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
                 </button>
                 <div class="select-menu" role="listbox" aria-labelledby="category-filter-label">
-                  <button class="select-option is-selected" type="button" role="option" data-value="all" aria-selected="true">Todas</button>
-                  <button class="select-option" type="button" role="option" data-value="__none__" aria-selected="false">Sin categoría</button>
+                  <button
+                    class="select-option is-selected"
+                    type="button"
+                    role="option"
+                    data-value="all"
+                    aria-selected="true"
+                  >
+                    Todas
+                  </button>
+                  <button
+                    class="select-option"
+                    type="button"
+                    role="option"
+                    data-value="__none__"
+                    aria-selected="false"
+                  >
+                    Sin categoría
+                  </button>
                 </div>
               </div>
-
               <div class="favorite-filter-field">
-                <span>Favoritos</span>
-                <button class="ghost-button favorite-filter-button" id="favorite-filter" type="button" data-filter="all" aria-pressed="false">
-                  <span>Todos</span>
+                <button
+                  class="select-button favorite-filter-button"
+                  id="favorite-filter"
+                  type="button"
+                  data-filter="all"
+                  aria-pressed="false"
+                  title="Alternar filtro de favoritos"
+                >
+                  <span class="control-prefix">Favoritos: </span><span>Todos</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="m7 10 5 5 5-5"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
                 </button>
               </div>
-
-              <div class="select-label custom-select" data-select-menu="sort-field">
-                <span id="sort-field-label">Ordenar por</span>
-                <input id="sort-field" name="sort-field" type="hidden" value="title">
-                <button class="select-button" id="sort-field-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="sort-field-label sort-field-current">
-                  <span id="sort-field-current">Título</span>
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              <div
+                class="select-label custom-select sort-field-control"
+                data-select-menu="sort-field"
+              >
+                <span class="sr-only" id="sort-field-label">Ordenar por</span>
+                <input id="sort-field" name="sort-field" type="hidden" value="isFavorite" />
+                <button
+                  class="select-button"
+                  id="sort-field-button"
+                  type="button"
+                  aria-haspopup="listbox"
+                  aria-expanded="false"
+                  aria-labelledby="sort-field-current"
+                >
+                  <span class="control-prefix">Ordenar por: </span
+                  ><span id="sort-field-current">Favoritos</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="m7 10 5 5 5-5"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
                 </button>
                 <div class="select-menu" role="listbox" aria-labelledby="sort-field-label">
-                  <button class="select-option is-selected" type="button" role="option" data-value="title" aria-selected="true">Título</button>
-                  <button class="select-option" type="button" role="option" data-value="createdAt" aria-selected="false">Fecha</button>
-                  <button class="select-option" type="button" role="option" data-value="category" aria-selected="false">Categoría</button>
-                  <button class="select-option" type="button" role="option" data-value="isFavorite" aria-selected="false">Favoritos</button>
+                  <button
+                    class="select-option"
+                    type="button"
+                    role="option"
+                    data-value="title"
+                    aria-selected="false"
+                  >
+                    Título
+                  </button>
+                  <button
+                    class="select-option"
+                    type="button"
+                    role="option"
+                    data-value="createdAt"
+                    aria-selected="false"
+                  >
+                    Fecha de creación
+                  </button>
+                  <button
+                    class="select-option"
+                    type="button"
+                    role="option"
+                    data-value="updatedAt"
+                    aria-selected="false"
+                  >
+                    Última modificación
+                  </button>
+                  <button
+                    class="select-option"
+                    type="button"
+                    role="option"
+                    data-value="category"
+                    aria-selected="false"
+                  >
+                    Categoría
+                  </button>
+                  <button
+                    class="select-option is-selected"
+                    type="button"
+                    role="option"
+                    data-value="isFavorite"
+                    aria-selected="true"
+                  >
+                    Favoritos
+                  </button>
                 </div>
               </div>
-
               <div class="direction-field">
-                <span>Tipo</span>
-                <button class="ghost-button direction-button" id="sort-direction" type="button" data-direction="asc">Ascendente</button>
-              </div>
-
-              <div class="select-label custom-select view-field" data-select-menu="view-mode">
-                <span id="view-mode-label">Vista</span>
-                <input id="view-mode" name="view-mode" type="hidden" value="expanded">
-                <button class="select-button" id="view-mode-button" type="button" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="view-mode-label view-mode-current">
-                  <span id="view-mode-current">Lista extendida</span>
-                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m7 10 5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+                <button
+                  class="select-button direction-button"
+                  id="sort-direction"
+                  type="button"
+                  data-direction="asc"
+                  title="Invertir dirección del orden"
+                >
+                  <span class="control-prefix">Tipo: </span
+                  ><span class="direction-value">Ascendente</span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path
+                      d="m7 10 5 5 5-5"
+                      stroke="currentColor"
+                      stroke-width="1.8"
+                      stroke-linecap="round"
+                    />
+                  </svg>
                 </button>
-                <div class="select-menu" role="listbox" aria-labelledby="view-mode-label">
-                  <button class="select-option is-selected" type="button" role="option" data-value="expanded" aria-selected="true">Lista extendida</button>
-                  <button class="select-option" type="button" role="option" data-value="compact" aria-selected="false">Lista resumida</button>
-                  <button class="select-option" type="button" role="option" data-value="titles" aria-selected="false">Índice de títulos</button>
-                  <button class="select-option" type="button" role="option" data-value="grid" aria-selected="false">Cuadrícula</button>
-                  <button class="select-option" type="button" role="option" data-value="mosaic" aria-selected="false">Mosaico</button>
-                </div>
+              </div>
+              <div class="view-switch" role="group" aria-label="Vista de la colección">
+                <button
+                  type="button"
+                  class="view-switch-button is-active"
+                  data-view-switch="grid"
+                  aria-pressed="true"
+                  aria-label="Cuadrícula"
+                  title="Cuadrícula"
+                >
+                  <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <use href="assets/icons/icons.svg#grid"></use>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="view-switch-button"
+                  data-view-switch="expanded"
+                  aria-pressed="false"
+                  aria-label="Lista extendida"
+                  title="Lista extendida"
+                >
+                  <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <use href="assets/icons/icons.svg#list"></use>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="view-switch-button"
+                  data-view-switch="titles"
+                  aria-pressed="false"
+                  aria-label="Índice de títulos"
+                  title="Índice de títulos"
+                >
+                  <svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <use href="assets/icons/icons.svg#titles"></use>
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
 
+          <div class="library-filter-summary">
+            <span id="result-count" aria-live="polite">0 prompts · Todas las categorías</span>
+            <div class="results-meta">
+              <span id="current-order-label"></span
+              ><button class="ghost-button clear-filters-button" id="clear-filters" type="button">
+                Limpiar filtros</button
+              ><button class="ghost-button" id="lock-vault-button" type="button" hidden>
+                Bloquear privados
+              </button>
+            </div>
+          </div>
           <div class="library-body">
             <div class="empty-state" id="empty-state">
               <span>Todavía no hay prompts.</span>
               <p>Crea el primero desde Nuevo prompt.</p>
+              <button class="primary-button" id="unlock-vault-button" type="button" hidden>
+                Desbloquear con PIN
+              </button>
             </div>
-
             <div class="prompt-list" id="prompt-list" aria-live="polite"></div>
+          </div>
+          <div class="collection-bottom">
+            <span>Has llegado al final de tu colección.</span
+            ><span id="collection-end">00 / 00</span>
           </div>
         </section>
       </main>
-
     </div>
 
-    <section class="pin-screen" id="pin-screen" aria-labelledby="pin-dialog-title" aria-hidden="true">
+    <section
+      class="pin-screen"
+      id="pin-screen"
+      aria-labelledby="pin-dialog-title"
+      aria-hidden="true"
+    >
       <div class="pin-dialog" role="dialog" aria-modal="true">
         <div class="panel-heading pin-heading">
           <h2 id="pin-dialog-title">Acceso de edición</h2>
@@ -116,7 +400,18 @@
 
         <form id="pin-form" class="pin-form" autocomplete="off" novalidate>
           <label class="sr-only" for="pin-input">PIN de 4 dígitos</label>
-          <input id="pin-input" class="pin-input" name="pin" type="password" inputmode="numeric" pattern="[0-9]{4}" maxlength="4" placeholder="••••" aria-describedby="pin-error" required>
+          <input
+            id="pin-input"
+            class="pin-input"
+            name="pin"
+            type="password"
+            inputmode="numeric"
+            pattern="[0-9]{4}"
+            maxlength="4"
+            placeholder="••••"
+            aria-describedby="pin-error"
+            required
+          />
           <p class="pin-error" id="pin-error" role="alert" aria-live="polite"></p>
           <div class="pin-actions">
             <button class="ghost-button" id="cancel-pin-button" type="button">Cancelar</button>
@@ -125,7 +420,12 @@
       </div>
     </section>
 
-    <section class="recovery-screen" id="recovery-screen" aria-labelledby="recovery-dialog-title" aria-hidden="true">
+    <section
+      class="recovery-screen"
+      id="recovery-screen"
+      aria-labelledby="recovery-dialog-title"
+      aria-hidden="true"
+    >
       <div class="recovery-dialog" role="dialog" aria-modal="true">
         <div class="panel-heading recovery-heading">
           <h2 id="recovery-dialog-title">Recuperar acceso</h2>
@@ -133,30 +433,48 @@
         </div>
         <div class="recovery-actions">
           <button class="ghost-button" id="cancel-recovery-button" type="button">Cancelar</button>
-          <button class="primary-button" id="send-recovery-button" type="button">Enviar enlace</button>
+          <button class="primary-button" id="send-recovery-button" type="button">
+            Enviar enlace
+          </button>
         </div>
       </div>
     </section>
 
-    <section class="composer-screen" id="composer-screen" aria-labelledby="form-title" aria-hidden="true">
+    <section
+      class="composer-screen"
+      id="composer-screen"
+      aria-labelledby="form-title"
+      aria-hidden="true"
+    >
       <div class="composer-dialog" role="dialog" aria-modal="true">
         <div class="composer-header">
           <div class="panel-heading">
             <h2 id="form-title">Nuevo prompt</h2>
           </div>
-          <button class="ghost-button composer-close" id="close-composer-button" type="button">Cerrar</button>
+          <button class="ghost-button composer-close" id="close-composer-button" type="button">
+            Cerrar
+          </button>
         </div>
 
         <form id="prompt-form" class="prompt-form" autocomplete="off" novalidate>
-          <input id="prompt-id" name="id" type="hidden">
-          <input id="prompt-favorite-value" name="isFavorite" type="hidden" value="false">
+          <input id="prompt-id" name="id" type="hidden" />
+          <input id="prompt-favorite-value" name="isFavorite" type="hidden" value="false" />
+          <input id="prompt-privacy-value" name="isPrivate" type="hidden" value="false" />
 
           <div class="field-group">
             <div class="field-label-row">
               <label for="prompt-title">Título</label>
               <span class="field-counter" id="prompt-title-count">0 / 120 caracteres</span>
             </div>
-            <input id="prompt-title" name="title" type="text" maxlength="120" aria-describedby="prompt-title-count" placeholder="Pon el título aquí de tu prompt" required>
+            <input
+              id="prompt-title"
+              name="title"
+              type="text"
+              maxlength="120"
+              aria-describedby="prompt-title-count"
+              placeholder="Pon el título aquí de tu prompt"
+              required
+            />
           </div>
 
           <div class="field-group prompt-content-field">
@@ -170,19 +488,39 @@
             <div class="markdown-composer">
               <div class="markdown-pane">
                 <span class="markdown-pane-label">Escritura</span>
-                <textarea id="prompt-content" name="content" rows="10" maxlength="50000" aria-describedby="prompt-content-count" placeholder="Escribe aquí el prompt completo" required></textarea>
+                <textarea
+                  id="prompt-content"
+                  name="content"
+                  rows="10"
+                  maxlength="50000"
+                  aria-describedby="prompt-content-count"
+                  placeholder="Escribe aquí el prompt completo"
+                  required
+                ></textarea>
               </div>
               <div class="markdown-pane">
                 <span class="markdown-pane-label">Vista previa</span>
-                <div class="markdown-preview markdown-body" id="prompt-markdown-preview" aria-label="Vista previa del contenido en Markdown"></div>
+                <div
+                  class="markdown-preview markdown-body"
+                  id="prompt-markdown-preview"
+                  aria-label="Vista previa del contenido en Markdown"
+                ></div>
               </div>
             </div>
           </div>
 
           <section class="prompt-options" aria-label="Opciones del prompt">
-            <button class="favorite-form-toggle" id="prompt-favorite" type="button" data-favorite="false" aria-pressed="false">
-              <span class="favorite-form-icon" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none"><path d="m12 3.8 2.42 4.9 5.4.78-3.91 3.82.92 5.37L12 16.13l-4.83 2.54.92-5.37-3.91-3.82 5.4-.78L12 3.8Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"></path></svg>
+            <button
+              class="favorite-form-toggle"
+              id="prompt-favorite"
+              type="button"
+              data-favorite="false"
+              aria-pressed="false"
+            >
+              <span class="favorite-form-icon" aria-hidden="true"
+                ><svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <use href="assets/icons/icons.svg#star"></use>
+                </svg>
               </span>
               <span class="favorite-form-copy">
                 <strong>Favorito</strong>
@@ -190,29 +528,70 @@
               </span>
             </button>
 
+            <button
+              class="privacy-form-toggle"
+              id="prompt-privacy"
+              type="button"
+              aria-pressed="false"
+            >
+              <span class="privacy-form-icon" aria-hidden="true"
+                ><svg class="app-icon" viewBox="0 0 24 24" aria-hidden="true">
+                  <use href="assets/icons/icons.svg#lock-open"></use></svg
+              ></span>
+              <span class="favorite-form-copy">
+                <strong>Privacidad</strong>
+                <small id="prompt-privacy-label">Público</small>
+              </span>
+            </button>
+
             <div class="category-assignment-card">
               <div class="category-assignment-content">
                 <span id="category-assignment-title">Categorías</span>
                 <p id="selected-categories-summary">Sin categoría asignada</p>
-                <div class="selected-category-preview" id="selected-category-preview" aria-live="polite"></div>
+                <div
+                  class="selected-category-preview"
+                  id="selected-category-preview"
+                  aria-live="polite"
+                ></div>
               </div>
-              <button class="ghost-button category-manager-open" id="open-category-manager-button" type="button">Gestionar</button>
+              <button
+                class="ghost-button category-manager-open"
+                id="open-category-manager-button"
+                type="button"
+              >
+                Gestionar
+              </button>
             </div>
           </section>
+          <p class="field-hint" id="privacy-hint">
+            Los prompts privados solo se muestran después de desbloquear la biblioteca privada. Su
+            contenido permanece protegido en el servidor seguro.
+          </p>
 
           <button class="primary-button" id="save-button" type="submit">Guardar prompt</button>
         </form>
       </div>
     </section>
 
-    <section class="category-screen" id="category-screen" aria-labelledby="category-dialog-title" aria-hidden="true">
+    <section
+      class="category-screen"
+      id="category-screen"
+      aria-labelledby="category-dialog-title"
+      aria-hidden="true"
+    >
       <div class="category-dialog" role="dialog" aria-modal="true">
         <div class="category-dialog-header">
           <div class="panel-heading">
             <h2 id="category-dialog-title">Categorías</h2>
             <p>Crea categorías en minúscula y selecciona las que quieres asignar al prompt.</p>
           </div>
-          <button class="ghost-button category-close" id="close-category-manager-button" type="button">Cerrar</button>
+          <button
+            class="ghost-button category-close"
+            id="close-category-manager-button"
+            type="button"
+          >
+            Cerrar
+          </button>
         </div>
 
         <div class="category-dialog-layout">
@@ -223,8 +602,16 @@
             </div>
             <div class="category-create-row">
               <label class="sr-only" for="category-name-input">Nueva categoría</label>
-              <input id="category-name-input" name="category-name" type="text" maxlength="60" placeholder="nombre de categoría">
-              <button class="primary-button" id="create-category-button" type="button">Crear</button>
+              <input
+                id="category-name-input"
+                name="category-name"
+                type="text"
+                maxlength="60"
+                placeholder="nombre de categoría"
+              />
+              <button class="primary-button" id="create-category-button" type="button">
+                Crear
+              </button>
             </div>
           </section>
 
@@ -233,19 +620,30 @@
               <span id="category-picker-title">Asignar al prompt</span>
               <p>Elige categorías existentes o elimínalas cuando ya no las necesites.</p>
             </div>
-            <div class="category-picker" id="category-picker" aria-label="Categorías disponibles"></div>
+            <div
+              class="category-picker"
+              id="category-picker"
+              aria-label="Categorías disponibles"
+            ></div>
           </section>
         </div>
       </div>
     </section>
 
-    <section class="viewer-screen" id="viewer-screen" aria-labelledby="viewer-title" aria-hidden="true">
+    <section
+      class="viewer-screen"
+      id="viewer-screen"
+      aria-labelledby="viewer-title"
+      aria-hidden="true"
+    >
       <div class="viewer-dialog" role="dialog" aria-modal="true">
         <div class="viewer-header">
           <div class="panel-heading">
             <h2 id="viewer-title">Prompt</h2>
           </div>
-          <button class="ghost-button viewer-close" id="close-viewer-button" type="button">Cerrar</button>
+          <button class="ghost-button viewer-close" id="close-viewer-button" type="button">
+            Cerrar
+          </button>
         </div>
 
         <div class="viewer-content">
@@ -257,12 +655,19 @@
         </div>
 
         <div class="viewer-actions">
-          <button class="primary-button" id="copy-viewer-button" type="button">Copiar prompt</button>
+          <button class="primary-button" id="copy-viewer-button" type="button">
+            Copiar prompt
+          </button>
         </div>
       </div>
     </section>
 
-    <section class="delete-screen" id="delete-screen" aria-labelledby="delete-title" aria-hidden="true">
+    <section
+      class="delete-screen"
+      id="delete-screen"
+      aria-labelledby="delete-title"
+      aria-hidden="true"
+    >
       <div class="delete-dialog" role="dialog" aria-modal="true">
         <div class="delete-content">
           <span class="delete-mark" aria-hidden="true"></span>
@@ -275,7 +680,9 @@
         </div>
         <div class="delete-actions">
           <button class="ghost-button" id="cancel-delete-button" type="button">Cancelar</button>
-          <button class="danger-button" id="confirm-delete-button" type="button">Eliminar prompt</button>
+          <button class="danger-button" id="confirm-delete-button" type="button">
+            Eliminar prompt
+          </button>
         </div>
       </div>
     </section>
@@ -283,10 +690,20 @@
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
     <footer class="site-footer">
-      <p><a class="footer-brand-link" href="https://github.com/RenzoFernando/Promptario" target="_blank" rel="noopener noreferrer"><strong>Promptario</strong></a> — Gestión y organización de prompts</p>
-      <p>© 2026 — Renzo Fernando Mosquera Daza</p>
+      <p>
+        <a
+          class="footer-brand-link"
+          href="https://github.com/RenzoFernando/Promptario"
+          target="_blank"
+          rel="noopener noreferrer"
+          ><strong>Promptario</strong></a
+        >
+        — Gestión y organización de prompts
+      </p>
+      <p>© <span data-current-year></span> — Renzo Fernando Mosquera Daza</p>
     </footer>
 
-    <script type="module" src="js/app.js"></script>
+    <script type="module" src="assets/js/year.js"></script>
+    <script type="module" src="assets/js/app.js"></script>
   </body>
 </html>

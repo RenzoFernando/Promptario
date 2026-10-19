@@ -8,7 +8,9 @@ const firebaseConfig = {
   measurementId: "G-1CVWY0RSSC"
 };
 
-const hasFirebaseConfig = Object.values(firebaseConfig).every((value) => typeof value === "string" && value.trim().length > 0);
+const hasFirebaseConfig = Object.values(firebaseConfig).every(
+  (value) => typeof value === "string" && value.trim().length > 0
+);
 const categoriesDocumentId = "promptario_categories";
 const securityConfigDocumentPath = ["publicConfig", "security"];
 
@@ -29,7 +31,10 @@ function normalizeDate(value) {
 }
 
 function normalizeCategoryName(value) {
-  return String(value || "").trim().replace(/\s+/g, " ").toLocaleLowerCase("es");
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .toLocaleLowerCase("es");
 }
 
 function normalizeCategories(value) {
@@ -50,7 +55,9 @@ function normalizeCategories(value) {
 }
 
 function normalizeSecurityApiUrl(value) {
-  const candidate = String(value || "").trim().replace(/\/+$/g, "");
+  const candidate = String(value || "")
+    .trim()
+    .replace(/\/+$/g, "");
 
   if (!candidate) {
     return "";
@@ -59,7 +66,8 @@ function normalizeSecurityApiUrl(value) {
   try {
     const url = new URL(candidate);
     const isSecureRemote = url.protocol === "https:";
-    const isLocal = url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
+    const isLocal =
+      url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1");
 
     return isSecureRemote || isLocal ? url.toString().replace(/\/+$/g, "") : "";
   } catch {
@@ -73,7 +81,9 @@ async function createFirestoreService() {
   }
 
   const firebaseApp = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
-  const firestore = await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js");
+  const firestore = await import(
+    "https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore.js"
+  );
 
   const app = firebaseApp.initializeApp(firebaseConfig);
   const db = firestore.getFirestore(app);
@@ -194,6 +204,27 @@ async function createFirestoreService() {
       return result;
     },
 
+    async readPrivatePrompt(id) {
+      if (!adminSessionToken) {
+        throw new Error("admin-session-missing");
+      }
+      const result = await callSecurityApi("/private/read", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${adminSessionToken}` },
+        body: JSON.stringify({ id })
+      });
+      return result.content;
+    },
+    async listPrivatePrompts() {
+      if (!adminSessionToken) throw new Error("admin-session-missing");
+      const result = await callSecurityApi("/private/list", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${adminSessionToken}` },
+        body: JSON.stringify({})
+      });
+      return Array.isArray(result.prompts) ? result.prompts : [];
+    },
+
     async signOutAdmin() {
       adminSessionToken = "";
     },
@@ -203,7 +234,8 @@ async function createFirestoreService() {
         title: data.title,
         content: data.content,
         categories: normalizeCategories(data.categories),
-        isFavorite: Boolean(data.isFavorite)
+        isFavorite: Boolean(data.isFavorite),
+        isPrivate: Boolean(data.isPrivate)
       });
     },
 
@@ -213,7 +245,8 @@ async function createFirestoreService() {
         title: data.title,
         content: data.content,
         categories: normalizeCategories(data.categories),
-        isFavorite: Boolean(data.isFavorite)
+        isFavorite: Boolean(data.isFavorite),
+        isPrivate: Boolean(data.isPrivate)
       });
     },
 
@@ -242,41 +275,50 @@ async function createFirestoreService() {
     },
 
     subscribePrompts(onChange, onError) {
-      return firestore.onSnapshot(promptsCollection, (snapshot) => {
-        const prompts = snapshot.docs.reduce((items, item) => {
-          const data = item.data();
+      return firestore.onSnapshot(
+        promptsCollection,
+        (snapshot) => {
+          const prompts = snapshot.docs.reduce((items, item) => {
+            const data = item.data();
 
-          if (item.id === categoriesDocumentId || data.internalType === "promptarioCategories") {
+            if (item.id === categoriesDocumentId || data.internalType === "promptarioCategories") {
+              return items;
+            }
+
+            items.push({
+              id: item.id,
+              title: data.title || "Sin título",
+              content: data.content || "",
+              categories: normalizeCategories(data.categories),
+              isFavorite: Boolean(data.isFavorite),
+              isPrivate: data.isPrivate === true,
+              createdAt: normalizeDate(data.createdAt),
+              updatedAt: normalizeDate(data.updatedAt || data.createdAt)
+            });
+
             return items;
-          }
+          }, []);
 
-          items.push({
-            id: item.id,
-            title: data.title || "Sin título",
-            content: data.content || "",
-            categories: normalizeCategories(data.categories),
-            isFavorite: Boolean(data.isFavorite),
-            createdAt: normalizeDate(data.createdAt),
-            updatedAt: normalizeDate(data.updatedAt || data.createdAt)
-          });
-
-          return items;
-        }, []);
-
-        onChange(prompts);
-      }, onError);
+          onChange(prompts);
+        },
+        onError
+      );
     },
 
     subscribeCategories(onChange, onError) {
-      return firestore.onSnapshot(categoriesDocument, (snapshot) => {
-        if (!snapshot.exists()) {
-          onChange([]);
-          return;
-        }
+      return firestore.onSnapshot(
+        categoriesDocument,
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            onChange([]);
+            return;
+          }
 
-        const data = snapshot.data();
-        onChange(normalizeCategories(data.categories));
-      }, onError);
+          const data = snapshot.data();
+          onChange(normalizeCategories(data.categories));
+        },
+        onError
+      );
     }
   };
 }

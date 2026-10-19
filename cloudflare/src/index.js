@@ -49,7 +49,10 @@ function resolveCorsOrigin(request, env) {
     return origin;
   }
 
-  if (env.ALLOW_LOCALHOST === "true" && /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)) {
+  if (
+    env.ALLOW_LOCALHOST === "true" &&
+    /^http:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?$/.test(origin)
+  ) {
     return origin;
   }
 
@@ -100,16 +103,21 @@ function validatePromptPayload(payload) {
   const content = normalizeText(payload?.content);
   const categories = normalizeCategories(payload?.categories);
   const isFavorite = Boolean(payload?.isFavorite);
+  const isPrivate = payload?.isPrivate === true;
 
   if (!title || title.length > 120) {
     throw new HttpError(400, "invalid-title", "El título debe tener entre 1 y 120 caracteres.");
   }
 
   if (!content || content.length > 50000) {
-    throw new HttpError(400, "invalid-content", "El contenido debe tener entre 1 y 50.000 caracteres.");
+    throw new HttpError(
+      400,
+      "invalid-content",
+      "El contenido debe tener entre 1 y 50.000 caracteres."
+    );
   }
 
-  return { title, content, categories, isFavorite };
+  return { title, content, categories, isFavorite, isPrivate };
 }
 
 function validateDocumentId(value) {
@@ -139,10 +147,7 @@ function base64UrlEncodeBytes(bytes) {
     binary += String.fromCharCode(byte);
   }
 
-  return btoa(binary)
-    .replaceAll("+", "-")
-    .replaceAll("/", "_")
-    .replace(/=+$/g, "");
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replace(/=+$/g, "");
 }
 
 function base64UrlEncodeText(value) {
@@ -183,13 +188,9 @@ async function importPinHashKey(secret) {
   }
 
   const keyBytes = await sha256(`promptario-pin-key-v1:${secret}`);
-  return crypto.subtle.importKey(
-    "raw",
-    keyBytes,
-    { name: "HMAC", hash: "SHA-256" },
-    false,
-    ["sign"]
-  );
+  return crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, [
+    "sign"
+  ]);
 }
 
 async function derivePinHash(pin, salt, secret) {
@@ -210,14 +211,16 @@ async function createPinCredentialValues(pin, env) {
 }
 
 async function getPinCredentials(env) {
-  let row = await env.DB.prepare(`
+  let row = await env.DB.prepare(
+    `
     SELECT
       salt,
       pin_hash AS pinHash,
       algorithm
     FROM pin_credentials
     WHERE id = 1
-  `).first();
+  `
+  ).first();
 
   if (row) {
     return row;
@@ -232,7 +235,8 @@ async function getPinCredentials(env) {
   const credentials = await createPinCredentialValues(bootstrapPin, env);
   const now = new Date().toISOString();
 
-  await env.DB.prepare(`
+  await env.DB.prepare(
+    `
     INSERT OR IGNORE INTO pin_credentials (
       id,
       salt,
@@ -240,21 +244,21 @@ async function getPinCredentials(env) {
       algorithm,
       updated_at
     ) VALUES (1, ?1, ?2, ?3, ?4)
-  `).bind(
-    credentials.salt,
-    credentials.pinHash,
-    credentials.algorithm,
-    now
-  ).run();
+  `
+  )
+    .bind(credentials.salt, credentials.pinHash, credentials.algorithm, now)
+    .run();
 
-  row = await env.DB.prepare(`
+  row = await env.DB.prepare(
+    `
     SELECT
       salt,
       pin_hash AS pinHash,
       algorithm
     FROM pin_credentials
     WHERE id = 1
-  `).first();
+  `
+  ).first();
 
   if (!row) {
     throw new Error("No fue posible inicializar las credenciales del PIN.");
@@ -290,7 +294,9 @@ async function writePinCredentials(db, pin, env) {
   const credentials = await createPinCredentialValues(pin, env);
   const now = new Date().toISOString();
 
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     INSERT INTO pin_credentials (
       id,
       salt,
@@ -303,12 +309,10 @@ async function writePinCredentials(db, pin, env) {
       pin_hash = excluded.pin_hash,
       algorithm = excluded.algorithm,
       updated_at = excluded.updated_at
-  `).bind(
-    credentials.salt,
-    credentials.pinHash,
-    credentials.algorithm,
-    now
-  ).run();
+  `
+    )
+    .bind(credentials.salt, credentials.pinHash, credentials.algorithm, now)
+    .run();
 }
 
 async function importHmacKey(secret) {
@@ -326,11 +330,15 @@ async function importHmacKey(secret) {
 }
 
 async function getSessionVersion(db) {
-  const row = await db.prepare(`
+  const row = await db
+    .prepare(
+      `
     SELECT version
     FROM session_state
     WHERE id = 1
-  `).first();
+  `
+    )
+    .first();
 
   if (!row) {
     throw new Error("La base D1 no está inicializada. Ejecuta la migración incluida.");
@@ -380,13 +388,13 @@ async function verifySessionToken(token, secret) {
   const now = Math.floor(Date.now() / 1000);
 
   if (
-    payload?.scope !== "promptario-editor"
-    || !Number.isInteger(payload?.ver)
-    || payload.ver < 1
-    || !Number.isInteger(payload?.iat)
-    || !Number.isInteger(payload?.exp)
-    || payload.exp <= now
-    || payload.exp - payload.iat > SESSION_TTL_SECONDS
+    payload?.scope !== "promptario-editor" ||
+    !Number.isInteger(payload?.ver) ||
+    payload.ver < 1 ||
+    !Number.isInteger(payload?.iat) ||
+    !Number.isInteger(payload?.exp) ||
+    payload.exp <= now ||
+    payload.exp - payload.iat > SESSION_TTL_SECONDS
   ) {
     return null;
   }
@@ -437,10 +445,15 @@ async function logSecurityEvent(db, type, client = {}, extra = {}) {
     ...extra
   });
 
-  await db.prepare(`
+  await db
+    .prepare(
+      `
     INSERT INTO security_events (type, created_at, details)
     VALUES (?1, ?2, ?3)
-  `).bind(type, new Date().toISOString(), details).run();
+  `
+    )
+    .bind(type, new Date().toISOString(), details)
+    .run();
 }
 
 function parseIpv4(value) {
@@ -456,7 +469,7 @@ function parseIpv4(value) {
     return null;
   }
 
-  return (((numbers[0] * 256) + numbers[1]) * 256 + numbers[2]) * 256 + numbers[3];
+  return ((numbers[0] * 256 + numbers[1]) * 256 + numbers[2]) * 256 + numbers[3];
 }
 
 function ipv4MatchesCidr(ip, cidr) {
@@ -465,7 +478,14 @@ function ipv4MatchesCidr(ip, cidr) {
   const ipValue = parseIpv4(ip);
   const networkValue = parseIpv4(network);
 
-  if (extra !== undefined || ipValue === null || networkValue === null || !Number.isInteger(prefix) || prefix < 0 || prefix > 32) {
+  if (
+    extra !== undefined ||
+    ipValue === null ||
+    networkValue === null ||
+    !Number.isInteger(prefix) ||
+    prefix < 0 ||
+    prefix > 32
+  ) {
     return false;
   }
 
@@ -482,11 +502,15 @@ async function isClientBlocked(db, ip) {
     return false;
   }
 
-  const result = await db.prepare(`
+  const result = await db
+    .prepare(
+      `
     SELECT target, kind
     FROM blocked_clients
     ORDER BY id ASC
-  `).all();
+  `
+    )
+    .all();
   const rows = Array.isArray(result?.results) ? result.results : [];
 
   return rows.some((row) => {
@@ -513,7 +537,9 @@ async function ensureClientAllowed(db, client) {
 }
 
 async function getSecurityState(db) {
-  const row = await db.prepare(`
+  const row = await db
+    .prepare(
+      `
     SELECT
       failed_attempts AS failedAttempts,
       locked,
@@ -522,7 +548,9 @@ async function getSecurityState(db) {
       last_success_at AS lastSuccessAt
     FROM security_state
     WHERE id = 1
-  `).first();
+  `
+    )
+    .first();
 
   if (!row) {
     throw new Error("La base D1 no está inicializada. Ejecuta la migración incluida.");
@@ -542,7 +570,9 @@ async function registerFailedAttempt(db, client) {
   const clientDetails = JSON.stringify(client);
 
   const results = await db.batch([
-    db.prepare(`
+    db
+      .prepare(
+        `
       UPDATE security_state
       SET
         failed_attempts = CASE
@@ -560,12 +590,20 @@ async function registerFailedAttempt(db, client) {
         END,
         updated_at = ?2
       WHERE id = 1 AND locked = 0
-    `).bind(MAX_FAILED_ATTEMPTS, now),
-    db.prepare(`
+    `
+      )
+      .bind(MAX_FAILED_ATTEMPTS, now),
+    db
+      .prepare(
+        `
       INSERT INTO security_events (type, created_at, details)
       VALUES ('pin-failed', ?1, ?2)
-    `).bind(now, clientDetails),
-    db.prepare(`
+    `
+      )
+      .bind(now, clientDetails),
+    db
+      .prepare(
+        `
       INSERT INTO security_events (type, created_at, details)
       SELECT
         'pin-lockout',
@@ -573,8 +611,12 @@ async function registerFailedAttempt(db, client) {
         ?2
       FROM security_state
       WHERE id = 1 AND locked = 1 AND lock_event_recorded = 0
-    `).bind(now, clientDetails),
-    db.prepare(`
+    `
+      )
+      .bind(now, clientDetails),
+    db
+      .prepare(
+        `
       UPDATE session_state
       SET version = version + 1, updated_at = ?1
       WHERE id = 1
@@ -583,7 +625,9 @@ async function registerFailedAttempt(db, client) {
           FROM security_state
           WHERE id = 1 AND locked = 1 AND lock_event_recorded = 0
         )
-    `).bind(now),
+    `
+      )
+      .bind(now),
     db.prepare(`
       UPDATE security_state
       SET lock_event_recorded = 1
@@ -621,18 +665,26 @@ async function registerSuccessfulPin(db, client) {
   const now = new Date().toISOString();
 
   const results = await db.batch([
-    db.prepare(`
+    db
+      .prepare(
+        `
       UPDATE security_state
       SET
         failed_attempts = 0,
         last_success_at = ?1,
         updated_at = ?1
       WHERE id = 1 AND locked = 0
-    `).bind(now),
-    db.prepare(`
+    `
+      )
+      .bind(now),
+    db
+      .prepare(
+        `
       INSERT INTO security_events (type, created_at, details)
       VALUES ('pin-success', ?1, ?2)
-    `).bind(now, JSON.stringify(client)),
+    `
+      )
+      .bind(now, JSON.stringify(client)),
     db.prepare(`
       SELECT
         failed_attempts AS failedAttempts,
@@ -656,7 +708,6 @@ async function registerSuccessfulPin(db, client) {
   };
 }
 
-
 function parseServiceAccount(env) {
   let serviceAccount;
 
@@ -667,10 +718,10 @@ function parseServiceAccount(env) {
   }
 
   if (
-    !serviceAccount
-    || typeof serviceAccount.client_email !== "string"
-    || typeof serviceAccount.private_key !== "string"
-    || typeof serviceAccount.project_id !== "string"
+    !serviceAccount ||
+    typeof serviceAccount.client_email !== "string" ||
+    typeof serviceAccount.private_key !== "string" ||
+    typeof serviceAccount.project_id !== "string"
   ) {
     throw new Error("La cuenta de servicio de Firebase está incompleta.");
   }
@@ -703,26 +754,26 @@ async function importServiceAccountKey(privateKey) {
 
 async function createGoogleAssertion(serviceAccount) {
   const now = Math.floor(Date.now() / 1000);
-  const header = base64UrlEncodeText(JSON.stringify({
-    alg: "RS256",
-    typ: "JWT",
-    ...(serviceAccount.private_key_id ? { kid: serviceAccount.private_key_id } : {})
-  }));
-  const claims = base64UrlEncodeText(JSON.stringify({
-    iss: serviceAccount.client_email,
-    scope: FIRESTORE_SCOPE,
-    aud: GOOGLE_TOKEN_URL,
-    iat: now,
-    exp: now + 3600
-  }));
+  const header = base64UrlEncodeText(
+    JSON.stringify({
+      alg: "RS256",
+      typ: "JWT",
+      ...(serviceAccount.private_key_id ? { kid: serviceAccount.private_key_id } : {})
+    })
+  );
+  const claims = base64UrlEncodeText(
+    JSON.stringify({
+      iss: serviceAccount.client_email,
+      scope: FIRESTORE_SCOPE,
+      aud: GOOGLE_TOKEN_URL,
+      iat: now,
+      exp: now + 3600
+    })
+  );
   const unsignedToken = `${header}.${claims}`;
   const key = await importServiceAccountKey(serviceAccount.private_key);
   const signature = new Uint8Array(
-    await crypto.subtle.sign(
-      "RSASSA-PKCS1-v1_5",
-      key,
-      new TextEncoder().encode(unsignedToken)
-    )
+    await crypto.subtle.sign("RSASSA-PKCS1-v1_5", key, new TextEncoder().encode(unsignedToken))
   );
 
   return `${unsignedToken}.${base64UrlEncodeBytes(signature)}`;
@@ -732,10 +783,10 @@ async function getGoogleAccessToken(env, forceRefresh = false) {
   const now = Math.floor(Date.now() / 1000);
 
   if (
-    !forceRefresh
-    && accessTokenCache.projectId === env.FIREBASE_PROJECT_ID
-    && accessTokenCache.token
-    && accessTokenCache.expiresAt > now + 60
+    !forceRefresh &&
+    accessTokenCache.projectId === env.FIREBASE_PROJECT_ID &&
+    accessTokenCache.token &&
+    accessTokenCache.expiresAt > now + 60
   ) {
     return accessTokenCache.token;
   }
@@ -817,10 +868,11 @@ function firestoreStringArray(values) {
 function promptFields(prompt, { includeCreatedAt = false } = {}) {
   const now = new Date().toISOString();
   const fields = {
-    title: firestoreString(prompt.title),
-    content: firestoreString(prompt.content),
-    categories: firestoreStringArray(prompt.categories),
-    isFavorite: firestoreBoolean(prompt.isFavorite),
+    title: firestoreString(prompt.isPrivate ? "Prompt privado" : prompt.title),
+    content: firestoreString(prompt.isPrivate ? "" : prompt.content),
+    isPrivate: firestoreBoolean(prompt.isPrivate),
+    categories: firestoreStringArray(prompt.isPrivate ? [] : prompt.categories),
+    isFavorite: firestoreBoolean(prompt.isPrivate ? false : prompt.isFavorite),
     updatedAt: firestoreTimestamp(now)
   };
 
@@ -871,21 +923,52 @@ async function requireFirestoreOk(response, message) {
   throw new HttpError(502, "firestore-error", message);
 }
 
-async function createPrompt(env, payload) {
-  const prompt = validatePromptPayload(payload);
-  const response = await firestoreRequest(env, "/prompts", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ fields: promptFields(prompt, { includeCreatedAt: true }) })
-  });
-
-  await requireFirestoreOk(response, "Firestore no pudo crear el prompt.");
+async function writePrivateContent(db, id, prompt, createdAt = new Date().toISOString()) {
+  const now = new Date().toISOString();
+  await db.batch([
+    db
+      .prepare(
+        `INSERT INTO private_prompts (id, content, updated_at) VALUES (?1, ?2, ?3)
+      ON CONFLICT(id) DO UPDATE SET content = excluded.content, updated_at = excluded.updated_at`
+      )
+      .bind(id, prompt.content, now),
+    db
+      .prepare(
+        `INSERT INTO private_prompt_details (id, title, categories, is_favorite, created_at, updated_at)
+      VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+      ON CONFLICT(id) DO UPDATE SET title = excluded.title, categories = excluded.categories,
+      is_favorite = excluded.is_favorite, updated_at = excluded.updated_at`
+      )
+      .bind(
+        id,
+        prompt.title,
+        JSON.stringify(prompt.categories),
+        Number(prompt.isFavorite),
+        createdAt,
+        now
+      )
+  ]);
 }
 
-async function updatePrompt(env, payload) {
-  const id = validateDocumentId(payload?.id);
-  const prompt = validatePromptPayload(payload);
-  const updateMask = ["title", "content", "categories", "isFavorite", "updatedAt"]
+async function removePrivateContent(db, id) {
+  await db.batch([
+    db.prepare("DELETE FROM private_prompt_details WHERE id = ?1").bind(id),
+    db.prepare("DELETE FROM private_prompts WHERE id = ?1").bind(id)
+  ]);
+}
+
+async function getPromptDocument(env, id) {
+  const response = await firestoreRequest(env, `/prompts/${encodeURIComponent(id)}`, {
+    method: "GET"
+  });
+  if (response.status === 404) {
+    throw new HttpError(404, "prompt-not-found", "No se encontró el prompt.");
+  }
+  return requireFirestoreOk(response, "Firestore no pudo consultar el prompt.");
+}
+
+async function updateFirestorePrompt(env, id, prompt) {
+  const updateMask = ["title", "content", "isPrivate", "categories", "isFavorite", "updatedAt"]
     .map((field) => `updateMask.fieldPaths=${encodeURIComponent(field)}`)
     .join("&");
   const response = await firestoreRequest(
@@ -897,8 +980,38 @@ async function updatePrompt(env, payload) {
       body: JSON.stringify({ fields: promptFields(prompt) })
     }
   );
-
   await requireFirestoreOk(response, "Firestore no pudo actualizar el prompt.");
+}
+
+async function createPrompt(env, payload) {
+  const prompt = validatePromptPayload(payload);
+  const id = crypto.randomUUID();
+  if (prompt.isPrivate) {
+    await writePrivateContent(env.DB, id, prompt);
+  }
+  try {
+    const response = await firestoreRequest(env, `/prompts?documentId=${encodeURIComponent(id)}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fields: promptFields(prompt, { includeCreatedAt: true }) })
+    });
+    await requireFirestoreOk(response, "Firestore no pudo crear el prompt.");
+  } catch (error) {
+    if (prompt.isPrivate) await removePrivateContent(env.DB, id).catch(() => {});
+    throw error;
+  }
+}
+
+async function updatePrompt(env, payload) {
+  const id = validateDocumentId(payload?.id);
+  const prompt = validatePromptPayload(payload);
+  const existing = await getPromptDocument(env, id);
+  if (prompt.isPrivate) {
+    const createdAt = existing?.fields?.createdAt?.timestampValue || new Date().toISOString();
+    await writePrivateContent(env.DB, id, prompt, createdAt);
+  }
+  await updateFirestorePrompt(env, id, prompt);
+  if (!prompt.isPrivate) await removePrivateContent(env.DB, id);
 }
 
 async function deletePrompt(env, payload) {
@@ -908,8 +1021,8 @@ async function deletePrompt(env, payload) {
     `/prompts/${encodeURIComponent(id)}?currentDocument.exists=true`,
     { method: "DELETE" }
   );
-
   await requireFirestoreOk(response, "Firestore no pudo eliminar el prompt.");
+  await removePrivateContent(env.DB, id);
 }
 
 async function getCategoriesDocument(env) {
@@ -978,11 +1091,12 @@ async function queryPromptsByCategory(env, category) {
     })
   });
 
-  const results = await requireFirestoreOk(response, "Firestore no pudo buscar los prompts de la categoría.");
+  const results = await requireFirestoreOk(
+    response,
+    "Firestore no pudo buscar los prompts de la categoría."
+  );
 
-  return Array.isArray(results)
-    ? results.map((item) => item?.document).filter(Boolean)
-    : [];
+  return Array.isArray(results) ? results.map((item) => item?.document).filter(Boolean) : [];
 }
 
 function firestoreDocumentId(document) {
@@ -1012,12 +1126,17 @@ async function deleteCategory(env, payload) {
   for (const document of documents) {
     const id = firestoreDocumentId(document);
 
-    if (!id || id === CATEGORIES_DOCUMENT_ID || document?.fields?.internalType?.stringValue === "promptarioCategories") {
+    if (
+      !id ||
+      id === CATEGORIES_DOCUMENT_ID ||
+      document?.fields?.internalType?.stringValue === "promptarioCategories"
+    ) {
       continue;
     }
 
-    const promptCategories = parseFirestoreStringArray(document?.fields?.categories)
-      .filter((item) => item !== category);
+    const promptCategories = parseFirestoreStringArray(document?.fields?.categories).filter(
+      (item) => item !== category
+    );
 
     writes.push({
       update: {
@@ -1034,7 +1153,11 @@ async function deleteCategory(env, payload) {
   }
 
   if (writes.length > 500) {
-    throw new HttpError(409, "too-many-category-updates", "La categoría está asignada a demasiados prompts para eliminarla en una sola operación.");
+    throw new HttpError(
+      409,
+      "too-many-category-updates",
+      "La categoría está asignada a demasiados prompts para eliminarla en una sola operación."
+    );
   }
 
   const token = await getGoogleAccessToken(env);
@@ -1051,6 +1174,22 @@ async function deleteCategory(env, payload) {
   );
 
   await requireFirestoreOk(response, "Firestore no pudo eliminar la categoría.");
+  const { results } = await env.DB.prepare(
+    "SELECT id, categories FROM private_prompt_details"
+  ).all();
+  for (const row of results || []) {
+    const current = normalizeCategories(JSON.parse(row.categories || "[]"));
+    if (!current.includes(category)) continue;
+    await env.DB.prepare(
+      "UPDATE private_prompt_details SET categories = ?1, updated_at = ?2 WHERE id = ?3"
+    )
+      .bind(
+        JSON.stringify(current.filter((item) => item !== category)),
+        new Date().toISOString(),
+        row.id
+      )
+      .run();
+  }
 }
 
 async function executeMutation(env, action, payload) {
@@ -1090,7 +1229,10 @@ function resolvePublicAppUrl(env) {
   try {
     const url = new URL(candidate);
 
-    if (url.protocol !== "https:" && !(url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1"))) {
+    if (
+      url.protocol !== "https:" &&
+      !(url.protocol === "http:" && (url.hostname === "localhost" || url.hostname === "127.0.0.1"))
+    ) {
       throw new Error("invalid-public-app-url");
     }
 
@@ -1122,7 +1264,9 @@ async function recoveryTokenHash(token) {
 
 async function getRecoveryRecord(db, token) {
   const tokenHash = await recoveryTokenHash(token);
-  const row = await db.prepare(`
+  const row = await db
+    .prepare(
+      `
     SELECT
       id,
       token_hash AS tokenHash,
@@ -1133,7 +1277,10 @@ async function getRecoveryRecord(db, token) {
       used_ip AS usedIp
     FROM recovery_tokens
     WHERE token_hash = ?1
-  `).bind(tokenHash).first();
+  `
+    )
+    .bind(tokenHash)
+    .first();
 
   return row || null;
 }
@@ -1162,12 +1309,18 @@ async function sendRecoveryEmail(env, recoveryUrl, client, tokenId) {
   const sender = normalizeText(env.RESEND_FROM_EMAIL) || "Promptario <onboarding@resend.dev>";
 
   if (!apiKey || !recipient) {
-    throw new HttpError(503, "recovery-not-configured", "La recuperación por correo no está configurada.");
+    throw new HttpError(
+      503,
+      "recovery-not-configured",
+      "La recuperación por correo no está configurada."
+    );
   }
 
   const occurredAt = new Date().toISOString();
   const ipLine = client.ip ? `<p><strong>IP:</strong> ${escapeHtml(client.ip)}</p>` : "";
-  const countryLine = client.country ? `<p><strong>País:</strong> ${escapeHtml(client.country)}</p>` : "";
+  const countryLine = client.country
+    ? `<p><strong>País:</strong> ${escapeHtml(client.country)}</p>`
+    : "";
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -1203,8 +1356,16 @@ async function sendRecoveryEmail(env, recoveryUrl, client, tokenId) {
       details = "";
     }
 
-    console.error("Resend no pudo enviar el correo de recuperación.", response.status, details.slice(0, 500));
-    throw new HttpError(502, "recovery-email-failed", "No fue posible enviar el enlace de recuperación.");
+    console.error(
+      "Resend no pudo enviar el correo de recuperación.",
+      response.status,
+      details.slice(0, 500)
+    );
+    throw new HttpError(
+      502,
+      "recovery-email-failed",
+      "No fue posible enviar el enlace de recuperación."
+    );
   }
 }
 
@@ -1216,12 +1377,14 @@ async function issueRecovery(env, client, { enforceCooldown = true } = {}) {
   }
 
   if (enforceCooldown) {
-    const latest = await env.DB.prepare(`
+    const latest = await env.DB.prepare(
+      `
       SELECT created_at AS createdAt
       FROM recovery_tokens
       ORDER BY created_at DESC
       LIMIT 1
-    `).first();
+    `
+    ).first();
     const latestAt = latest?.createdAt ? Date.parse(latest.createdAt) : NaN;
 
     if (Number.isFinite(latestAt) && Date.now() - latestAt < RECOVERY_COOLDOWN_SECONDS * 1000) {
@@ -1237,12 +1400,15 @@ async function issueRecovery(env, client, { enforceCooldown = true } = {}) {
   const expiresAt = new Date(now.getTime() + RECOVERY_TTL_SECONDS * 1000).toISOString();
 
   await env.DB.batch([
-    env.DB.prepare(`
+    env.DB.prepare(
+      `
       UPDATE recovery_tokens
       SET used_at = ?1
       WHERE used_at IS NULL
-    `).bind(createdAt),
-    env.DB.prepare(`
+    `
+    ).bind(createdAt),
+    env.DB.prepare(
+      `
       INSERT INTO recovery_tokens (
         id,
         token_hash,
@@ -1250,7 +1416,8 @@ async function issueRecovery(env, client, { enforceCooldown = true } = {}) {
         expires_at,
         requested_ip
       ) VALUES (?1, ?2, ?3, ?4, ?5)
-    `).bind(tokenId, tokenHash, createdAt, expiresAt, client.ip || null)
+    `
+    ).bind(tokenId, tokenHash, createdAt, expiresAt, client.ip || null)
   ]);
 
   const recoveryUrl = buildRecoveryUrl(env, token);
@@ -1258,10 +1425,14 @@ async function issueRecovery(env, client, { enforceCooldown = true } = {}) {
   try {
     await sendRecoveryEmail(env, recoveryUrl, client, tokenId);
   } catch (error) {
-    await env.DB.prepare(`
+    await env.DB.prepare(
+      `
       DELETE FROM recovery_tokens
       WHERE id = ?1
-    `).bind(tokenId).run();
+    `
+    )
+      .bind(tokenId)
+      .run();
     await logSecurityEvent(env.DB, "recovery-email-failed", client, { tokenId });
     throw error;
   }
@@ -1271,12 +1442,16 @@ async function issueRecovery(env, client, { enforceCooldown = true } = {}) {
 }
 
 async function handleSecurityStatus(request, env, origin) {
-    const state = await getSecurityState(env.DB);
+  const state = await getSecurityState(env.DB);
 
-    return jsonResponse({
-        ok: true,
-        locked: state.locked
-    }, 200, origin);
+  return jsonResponse(
+    {
+      ok: true,
+      locked: state.locked
+    },
+    200,
+    origin
+  );
 }
 
 async function handleAuth(request, env, origin) {
@@ -1287,18 +1462,26 @@ async function handleAuth(request, env, origin) {
   const pin = normalizeText(body?.pin);
 
   if (!/^\d{4}$/.test(pin)) {
-    throw new HttpError(400, "invalid-pin-format", "El PIN debe tener exactamente 4 dígitos numéricos.");
+    throw new HttpError(
+      400,
+      "invalid-pin-format",
+      "El PIN debe tener exactamente 4 dígitos numéricos."
+    );
   }
 
   const initialState = await getSecurityState(env.DB);
 
   if (initialState.locked) {
     await logSecurityEvent(env.DB, "pin-attempt-while-locked", client);
-    return jsonResponse({
-      ok: false,
-      status: "locked",
-      remainingAttempts: 0
-    }, 200, origin);
+    return jsonResponse(
+      {
+        ok: false,
+        status: "locked",
+        remainingAttempts: 0
+      },
+      200,
+      origin
+    );
   }
 
   if (!(await verifyConfiguredPin(env, pin))) {
@@ -1308,69 +1491,190 @@ async function handleAuth(request, env, origin) {
       try {
         await issueRecovery(env, client, { enforceCooldown: false });
       } catch (error) {
-        console.error("Promptario quedó bloqueado y no fue posible enviar la recuperación automática.", error);
+        console.error(
+          "Promptario quedó bloqueado y no fue posible enviar la recuperación automática.",
+          error
+        );
       }
     }
 
-    return jsonResponse({
-      ok: false,
-      status: state.locked ? "locked" : "invalid-pin",
-      remainingAttempts: state.remainingAttempts
-    }, 200, origin);
+    return jsonResponse(
+      {
+        ok: false,
+        status: state.locked ? "locked" : "invalid-pin",
+        remainingAttempts: state.remainingAttempts
+      },
+      200,
+      origin
+    );
   }
 
   const state = await registerSuccessfulPin(env.DB, client);
 
   if (state.locked) {
-    return jsonResponse({
-      ok: false,
-      status: "locked",
-      remainingAttempts: 0
-    }, 200, origin);
+    return jsonResponse(
+      {
+        ok: false,
+        status: "locked",
+        remainingAttempts: 0
+      },
+      200,
+      origin
+    );
   }
 
   const sessionVersion = await getSessionVersion(env.DB);
   const token = await createSessionToken(env.SESSION_SECRET, sessionVersion);
 
-  return jsonResponse({
-    ok: true,
-    status: "authorized",
-    remainingAttempts: MAX_FAILED_ATTEMPTS,
-    token,
-    expiresIn: SESSION_TTL_SECONDS
-  }, 200, origin);
+  return jsonResponse(
+    {
+      ok: true,
+      status: "authorized",
+      remainingAttempts: MAX_FAILED_ATTEMPTS,
+      token,
+      expiresIn: SESSION_TTL_SECONDS
+    },
+    200,
+    origin
+  );
 }
 
-async function handleMutation(request, env, origin) {
+async function requireAdminSession(request, env) {
   const client = getClientInfo(request);
   await ensureClientAllowed(env.DB, client);
-
   const authorization = request.headers.get("Authorization") || "";
   const token = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
     : "";
   const session = await verifySessionToken(token, env.SESSION_SECRET);
   const sessionVersion = await getSessionVersion(env.DB);
-
   if (!session || session.ver !== sessionVersion) {
-    throw new HttpError(401, "invalid-session", "La autorización de edición venció o no es válida.");
+    throw new HttpError(401, "invalid-session", "La autorización venció o no es válida.");
   }
-
   const state = await getSecurityState(env.DB);
-
   if (state.locked) {
-    throw new HttpError(423, "locked", "El acceso de edición está bloqueado.");
+    throw new HttpError(423, "locked", "El acceso está bloqueado.");
   }
+  return client;
+}
 
+// Migra los documentos privados antiguos antes de devolver los títulos autorizados.
+async function migrateLegacyPrivatePrompts(env) {
+  const token = await getGoogleAccessToken(env);
+  const response = await fetch(
+    `https://firestore.googleapis.com/v1/projects/${encodeURIComponent(env.FIREBASE_PROJECT_ID)}/databases/(default)/documents:runQuery`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        structuredQuery: {
+          from: [{ collectionId: "prompts" }],
+          where: {
+            fieldFilter: {
+              field: { fieldPath: "isPrivate" },
+              op: "EQUAL",
+              value: firestoreBoolean(true)
+            }
+          }
+        }
+      })
+    }
+  );
+  const results = await requireFirestoreOk(
+    response,
+    "No fue posible comprobar los prompts privados anteriores."
+  );
+  for (const item of Array.isArray(results) ? results : []) {
+    const document = item?.document;
+    const id = firestoreDocumentId(document);
+    if (!id) continue;
+    const fields = document.fields || {};
+    const details = await env.DB.prepare("SELECT id FROM private_prompt_details WHERE id = ?1")
+      .bind(id)
+      .first();
+    if (!details) {
+      const content = await env.DB.prepare("SELECT content FROM private_prompts WHERE id = ?1")
+        .bind(id)
+        .first();
+      if (!content) continue;
+      await writePrivateContent(
+        env.DB,
+        id,
+        {
+          title: fields.title?.stringValue || "Sin título",
+          content: content.content,
+          categories: parseFirestoreStringArray(fields.categories),
+          isFavorite: fields.isFavorite?.booleanValue === true,
+          isPrivate: true
+        },
+        fields.createdAt?.timestampValue || new Date().toISOString()
+      );
+    }
+    if (
+      fields.title?.stringValue !== "Prompt privado" ||
+      fields.content?.stringValue ||
+      parseFirestoreStringArray(fields.categories).length ||
+      fields.isFavorite?.booleanValue === true
+    ) {
+      await updateFirestorePrompt(env, id, {
+        title: "Prompt privado",
+        content: "",
+        categories: [],
+        isFavorite: false,
+        isPrivate: true
+      });
+    }
+  }
+}
+
+async function handlePrivateList(request, env, origin) {
+  await requireAdminSession(request, env);
+  await migrateLegacyPrivatePrompts(env);
+  const { results } = await env.DB.prepare(
+    `
+    SELECT d.id, d.title, d.categories, d.is_favorite, d.created_at, d.updated_at
+    FROM private_prompt_details d JOIN private_prompts p ON p.id = d.id
+    ORDER BY d.created_at DESC
+  `
+  ).all();
+  const prompts = (results || []).map((row) => ({
+    id: row.id,
+    title: row.title,
+    content: "",
+    categories: normalizeCategories(JSON.parse(row.categories || "[]")),
+    isFavorite: row.is_favorite === 1,
+    isPrivate: true,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  }));
+  return jsonResponse({ ok: true, prompts }, 200, origin);
+}
+
+async function handlePrivateRead(request, env, origin) {
+  const client = await requireAdminSession(request, env);
+  const body = await readJson(request);
+  const id = validateDocumentId(body?.id);
+  const document = await getPromptDocument(env, id);
+  if (document?.fields?.isPrivate?.booleanValue !== true) {
+    throw new HttpError(404, "prompt-not-private", "El prompt no es privado.");
+  }
+  const result = await env.DB.prepare("SELECT content FROM private_prompts WHERE id = ?1")
+    .bind(id)
+    .first();
+  if (!result || typeof result.content !== "string") {
+    throw new HttpError(404, "private-content-not-found", "No se encontró el contenido privado.");
+  }
+  await logSecurityEvent(env.DB, "private-read", client, { id });
+  return jsonResponse({ ok: true, content: result.content }, 200, origin);
+}
+
+async function handleMutation(request, env, origin) {
+  const client = await requireAdminSession(request, env);
   const body = await readJson(request);
   const action = normalizeText(body?.action);
-  const payload = body?.payload && typeof body.payload === "object"
-    ? body.payload
-    : {};
-
+  const payload = body?.payload && typeof body.payload === "object" ? body.payload : {};
   await executeMutation(env, action, payload);
   await logSecurityEvent(env.DB, "mutation-success", client, { action });
-
   return jsonResponse({ ok: true, status: "saved" }, 200, origin);
 }
 
@@ -1392,10 +1696,14 @@ async function handleRecoveryVerify(request, env, origin) {
 
   await logSecurityEvent(env.DB, "recovery-token-check", client, { status });
 
-  return jsonResponse({
-    ok: status === "valid",
-    status
-  }, 200, origin);
+  return jsonResponse(
+    {
+      ok: status === "valid",
+      status
+    },
+    200,
+    origin
+  );
 }
 
 async function hasValidAdminCliToken(request, env) {
@@ -1409,10 +1717,7 @@ async function hasValidAdminCliToken(request, env) {
     return false;
   }
 
-  const [expectedHash, candidateHash] = await Promise.all([
-    sha256(expected),
-    sha256(candidate)
-  ]);
+  const [expectedHash, candidateHash] = await Promise.all([sha256(expected), sha256(candidate)]);
 
   return timingSafeEqualBytes(expectedHash, candidateHash);
 }
@@ -1426,7 +1731,11 @@ async function handleRecoveryReset(request, env, origin) {
   const confirmation = normalizeText(body?.confirmation);
 
   if (!/^\d{4}$/.test(pin)) {
-    throw new HttpError(400, "invalid-pin-format", "El PIN debe tener exactamente 4 dígitos numéricos.");
+    throw new HttpError(
+      400,
+      "invalid-pin-format",
+      "El PIN debe tener exactamente 4 dígitos numéricos."
+    );
   }
 
   if (pin !== confirmation) {
@@ -1442,25 +1751,34 @@ async function handleRecoveryReset(request, env, origin) {
 
   const tokenHash = await recoveryTokenHash(token);
   const now = new Date().toISOString();
-  const claim = await env.DB.prepare(`
+  const claim = await env.DB.prepare(
+    `
     UPDATE recovery_tokens
     SET used_at = ?1, used_ip = ?2
     WHERE token_hash = ?3
       AND used_at IS NULL
       AND expires_at > ?1
-  `).bind(now, client.ip || null, tokenHash).run();
+  `
+  )
+    .bind(now, client.ip || null, tokenHash)
+    .run();
 
   if (Number(claim?.meta?.changes || 0) !== 1) {
     const currentRecord = await getRecoveryRecord(env.DB, token);
-    return jsonResponse({
-      ok: false,
-      status: recoveryRecordStatus(currentRecord)
-    }, 200, origin);
+    return jsonResponse(
+      {
+        ok: false,
+        status: recoveryRecordStatus(currentRecord)
+      },
+      200,
+      origin
+    );
   }
 
   await writePinCredentials(env.DB, pin, env);
   await env.DB.batch([
-    env.DB.prepare(`
+    env.DB.prepare(
+      `
       UPDATE security_state
       SET
         failed_attempts = 0,
@@ -1470,24 +1788,33 @@ async function handleRecoveryReset(request, env, origin) {
         last_success_at = ?1,
         updated_at = ?1
       WHERE id = 1
-    `).bind(now),
-    env.DB.prepare(`
+    `
+    ).bind(now),
+    env.DB.prepare(
+      `
       UPDATE session_state
       SET version = version + 1, updated_at = ?1
       WHERE id = 1
-    `).bind(now),
-    env.DB.prepare(`
+    `
+    ).bind(now),
+    env.DB.prepare(
+      `
       UPDATE recovery_tokens
       SET used_at = COALESCE(used_at, ?1)
       WHERE used_at IS NULL
-    `).bind(now)
+    `
+    ).bind(now)
   ]);
   await logSecurityEvent(env.DB, "recovery-success", client, { tokenId: record.id });
 
-  return jsonResponse({
-    ok: true,
-    status: "updated"
-  }, 200, origin);
+  return jsonResponse(
+    {
+      ok: true,
+      status: "updated"
+    },
+    200,
+    origin
+  );
 }
 
 async function handleAdminChangePin(request, env, origin) {
@@ -1507,7 +1834,11 @@ async function handleAdminChangePin(request, env, origin) {
   const confirmation = normalizeText(body?.confirmation);
 
   if (!/^\d{4}$/.test(pin)) {
-    throw new HttpError(400, "invalid-pin-format", "El PIN debe tener exactamente 4 dígitos numéricos.");
+    throw new HttpError(
+      400,
+      "invalid-pin-format",
+      "El PIN debe tener exactamente 4 dígitos numéricos."
+    );
   }
 
   if (pin !== confirmation) {
@@ -1517,7 +1848,8 @@ async function handleAdminChangePin(request, env, origin) {
   const now = new Date().toISOString();
   await writePinCredentials(env.DB, pin, env);
   await env.DB.batch([
-    env.DB.prepare(`
+    env.DB.prepare(
+      `
       UPDATE security_state
       SET
         failed_attempts = 0,
@@ -1527,24 +1859,33 @@ async function handleAdminChangePin(request, env, origin) {
         last_success_at = ?1,
         updated_at = ?1
       WHERE id = 1
-    `).bind(now),
-    env.DB.prepare(`
+    `
+    ).bind(now),
+    env.DB.prepare(
+      `
       UPDATE session_state
       SET version = version + 1, updated_at = ?1
       WHERE id = 1
-    `).bind(now),
-    env.DB.prepare(`
+    `
+    ).bind(now),
+    env.DB.prepare(
+      `
       UPDATE recovery_tokens
       SET used_at = COALESCE(used_at, ?1)
       WHERE used_at IS NULL
-    `).bind(now)
+    `
+    ).bind(now)
   ]);
   await logSecurityEvent(env.DB, "admin-pin-change", client);
 
-  return jsonResponse({
-    ok: true,
-    status: "updated"
-  }, 200, origin);
+  return jsonResponse(
+    {
+      ok: true,
+      status: "updated"
+    },
+    200,
+    origin
+  );
 }
 
 export default {
@@ -1561,10 +1902,14 @@ export default {
       const url = new URL(request.url);
 
       if (request.method === "GET" && url.pathname === "/health") {
-        return jsonResponse({
-          ok: true,
-          service: "promptario-security"
-        }, 200, origin);
+        return jsonResponse(
+          {
+            ok: true,
+            service: "promptario-security"
+          },
+          200,
+          origin
+        );
       }
 
       if (request.method === "GET" && url.pathname === "/security/status") {
@@ -1575,6 +1920,13 @@ export default {
         return await handleAuth(request, env, origin);
       }
 
+      if (request.method === "POST" && url.pathname === "/private/list") {
+        return await handlePrivateList(request, env, origin);
+      }
+
+      if (request.method === "POST" && url.pathname === "/private/read") {
+        return await handlePrivateRead(request, env, origin);
+      }
       if (request.method === "POST" && url.pathname === "/mutate") {
         return await handleMutation(request, env, origin);
       }
@@ -1595,27 +1947,39 @@ export default {
         return await handleAdminChangePin(request, env, origin);
       }
 
-      return jsonResponse({
-        ok: false,
-        code: "not-found",
-        message: "Ruta no encontrada."
-      }, 404, origin);
+      return jsonResponse(
+        {
+          ok: false,
+          code: "not-found",
+          message: "Ruta no encontrada."
+        },
+        404,
+        origin
+      );
     } catch (error) {
       if (error instanceof HttpError) {
-        return jsonResponse({
-          ok: false,
-          code: error.code,
-          message: error.message
-        }, error.status, origin);
+        return jsonResponse(
+          {
+            ok: false,
+            code: error.code,
+            message: error.message
+          },
+          error.status,
+          origin
+        );
       }
 
       console.error("Error no controlado en Promptario Security Worker.", error);
 
-      return jsonResponse({
-        ok: false,
-        code: "internal-error",
-        message: "El servicio de edición no pudo completar la solicitud."
-      }, 500, origin);
+      return jsonResponse(
+        {
+          ok: false,
+          code: "internal-error",
+          message: "El servicio de edición no pudo completar la solicitud."
+        },
+        500,
+        origin
+      );
     }
   }
 };
